@@ -377,6 +377,141 @@ class RiskMapTests(unittest.TestCase):
         self.assertEqual(RiskMap.from_json(path).ports[445]["cve"], "CVE-B")
 
 
+class MemoryBoundTests(unittest.TestCase):
+    """Nothing in the running system may grow with traffic volume."""
+
+    def setUp(self):
+        self.clock = FakeClock()
+        self.runner = FakeRunner()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.blocker = FirewallBlocker(runner=self.runner, ttl_min=0)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def pipe(self):
+        return Pipeline(StubDetector(), self.blocker,
+                        Alerter(Path(self.tmp.name) / "a.log", console=False),
+                        own_addresses={HOST}, clock=self.clock)
+
+    def test_window_size_is_independent_of_packet_rate(self):
+        """A flood must not cost more memory than a trickle."""
+        import sys
+
+        def footprint(packets):
+            w = SourceWindow()
+            for i in range(packets):
+                w.add(1000.0 + (i % 10) * 0.1, 80, HOST, 6, False, 500)
+            return sum(sys.getsizeof(getattr(w, slot)) for slot in w.__slots__
+                       if isinstance(getattr(w, slot), list))
+
+        small, large = footprint(50), footprint(50_000)
+        self.assertEqual(small, large)
+
+    def test_flood_features_still_correct(self):
+        w = SourceWindow()
+        for i in range(1000):
+            w.add(1000.0 + i * 0.001, 80, HOST, 6, True, 100)   # 1000 pkts in 1s
+        vec = dict(zip(FEATURE_NAMES, w.extract()))
+        self.assertEqual(vec["pkt_count"], 1000)
+        self.assertEqual(vec["pkts_per_sec"], 1000)
+        self.assertEqual(vec["tcp_count"], 1000)
+        self.assertEqual(vec["syn_only_count"], 1000)
+        self.assertEqual(vec["avg_len_bucket"], 1)
+
+    def test_distinct_ports_are_capped_but_still_trip_the_rule(self):
+        from packetwatch.features import PORT_CAP
+
+        w = SourceWindow()
+        for port in range(1, 40_000):
+            w.add(1000.0, port, HOST, 6, True, 60)
+        self.assertEqual(w.unique_dst_ports(), PORT_CAP)
+        self.assertGreater(PORT_CAP, config.PORT_SCAN_THRESHOLD)
+        self.assertEqual([h.rule for h in verify(w)][0], "port_scan")
+
+    def test_old_seconds_leave_the_window(self):
+        w = SourceWindow()
+        for i in range(5):
+            w.add(1000.0 + i, 80, HOST, 6, False, 100)
+        self.assertEqual(w.extract()[0], 5)
+        w.add(1000.0 + 60, 80, HOST, 6, False, 100)     # a minute later
+        self.assertEqual(w.extract()[0], 1)             # only the new packet counts
+
+    def test_source_table_is_capped(self):
+        """A spoofed-source flood cannot grow the table without limit."""
+        pipe = self.pipe()
+        for i in range(config.MAX_SOURCES + 500):
+            src = f"10.{i // 65536 % 256}.{i // 256 % 256}.{i % 256}"
+            pipe.handle(IP(src=src, dst=HOST) / TCP(dport=80, flags="S"))
+        self.assertLessEqual(len(pipe.windows), config.MAX_SOURCES)
+        self.assertGreater(pipe.evicted, 0)
+
+    def test_idle_sources_are_released(self):
+        pipe = self.pipe()
+        for i in range(50):
+            pipe.handle(IP(src=f"10.0.0.{i}", dst=HOST) / TCP(dport=80, flags="A"))
+        self.assertEqual(len(pipe.windows), 50)
+        self.clock.t += config.IDLE_EVICT_SECONDS + 5
+        pipe.sweep(force=True)                          # the ticker's job
+        self.assertEqual(len(pipe.windows), 0)
+
+    def test_correlator_forgets_quiet_addresses(self):
+        from packetwatch.verify import Correlator, RuleHit
+
+        clock = FakeClock()
+        c = Correlator(clock=clock)
+        for i in range(500):
+            c.severity(f"10.1.{i // 256}.{i % 256}",
+                       [RuleHit("port_scan", 20, 10, "ports")])
+        self.assertGreater(len(c.seen), 0)
+        clock.t += config.CORRELATION_WINDOW * 2
+        c.severity("10.9.9.9", [RuleHit("port_scan", 20, 10, "ports")])
+        self.assertEqual(len(c.seen), 1)                # only the current address
+
+    def test_block_timers_do_not_accumulate(self):
+        blocker = FirewallBlocker(runner=self.runner, ttl_min=30)
+        for i in range(200):
+            blocker.block(f"10.5.0.{i % 200}")
+        self.assertLessEqual(len(blocker._timers), len(blocker.blocked))
+        for t in blocker._timers:
+            t.cancel()
+
+    def test_alert_log_rotates_instead_of_growing(self):
+        log = Path(self.tmp.name) / "alerts.log"
+        alerter = Alerter(log, console=False, max_bytes=2000, backups=2)
+        hit = [RuleHitStub()]
+        ml = {"dt": True, "nb": True, "dt_proba": 1.0, "nb_proba": 1.0, "flagged": True}
+        for i in range(200):
+            alerter.alert(f"10.7.0.{i % 250}", "HIGH", ml, hit, "blocked")
+        self.assertLess(log.stat().st_size, 4000)
+        self.assertTrue(Path(str(log) + ".1").exists())
+        self.assertFalse(Path(str(log) + ".3").exists())   # backups capped at 2
+
+    def test_calibration_sample_is_capped(self):
+        from packetwatch.calibrate import Collector
+
+        clock = FakeClock()
+        col = Collector(clock=clock, max_samples=100)
+        wire = bytes(IP(src="10.8.8.8", dst=HOST) / TCP(dport=443, flags="A"))
+        for _ in range(3000):
+            col.handle(IP(wire))
+            clock.t += 1.1
+        self.assertLessEqual(len(col.samples), 100)
+        self.assertGreater(col.seen, 100)
+
+
+class RuleHitStub:
+    """Minimal stand-in for a RuleHit, for log-rotation volume."""
+
+    rule = "port_scan"
+
+    def as_dict(self):
+        return {"rule": self.rule, "observed": 50, "threshold": 10, "unit": "ports"}
+
+    def explain(self):
+        return "port_scan: observed 50 ports >= threshold 10"
+
+
 class CalibrationTests(unittest.TestCase):
     def samples(self, ports, pps, susp, n=1000):
         """n feature vectors whose three rule columns hold the given values."""

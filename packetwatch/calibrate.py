@@ -14,6 +14,7 @@ blind, and the baseline must be quiet: traffic captured during an attack teaches
 the host that the attack is normal.
 """
 import json
+import random
 import time
 
 import numpy as np
@@ -48,11 +49,29 @@ def thresholds_from_samples(samples, percentile=PERCENTILE):
 class Collector:
     """Snapshots each active source's feature window once a second."""
 
-    def __init__(self, clock=time.time):
+    def __init__(self, clock=time.time, max_samples=config.MAX_CALIBRATION_SAMPLES):
         self.clock = clock
         self.windows = {}
         self.samples = []
+        self.seen = 0
+        self.max_samples = max_samples
+        self._rng = random.Random(0)
         self._last = float("-inf")
+
+    def _record(self, sample):
+        """Reservoir sampling: a fixed-size, unbiased picture of the baseline.
+
+        Calibration may run for an hour on a busy host. Keeping every snapshot
+        would be the unbounded growth this code exists to avoid, and the
+        percentile it feeds is just as accurate from a large random sample.
+        """
+        self.seen += 1
+        if len(self.samples) < self.max_samples:
+            self.samples.append(sample)
+            return
+        j = self._rng.randrange(self.seen)
+        if j < self.max_samples:
+            self.samples[j] = sample
 
     def handle(self, pkt):
         from scapy.layers.inet import IP, TCP, UDP
@@ -76,10 +95,13 @@ class Collector:
         win.add(now, dport, ip.dst, int(ip.proto), syn_only, packet_length(pkt, ip))
         if now - self._last >= config.EVAL_INTERVAL:
             self._last = now
+            for stale in [i for i, w in self.windows.items()
+                          if now - w.last_seen > config.IDLE_EVICT_SECONDS]:
+                del self.windows[stale]       # same eviction the live pipeline uses
             for w in self.windows.values():
                 w.prune(now)
-                if w.entries:
-                    self.samples.append(w.extract())
+                if w.active:
+                    self._record(w.extract())
 
 
 def save(thresholds, path=THRESHOLD_FILE):
@@ -106,8 +128,9 @@ def run(iface=None, seconds=300):
            "flood_pps": config.FLOOD_PPS_THRESHOLD,
            "suspicious_port": config.SUSPICIOUS_PORT_THRESHOLD}
     path = save(new)
-    print(f"\nObserved {len(collector.samples):,} source-windows from "
-          f"{len(collector.windows):,} sources.")
+    print(f"\nObserved {collector.seen:,} source-windows from "
+          f"{len(collector.windows):,} sources "
+          f"(kept {len(collector.samples):,} as the sample).")
     for k in old:
         mark = "unchanged" if old[k] == new[k] else f"was {old[k]}"
         print(f"  {k:16} {new[k]:>6}   ({mark})")

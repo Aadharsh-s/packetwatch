@@ -18,6 +18,21 @@ EVAL_INTERVAL = 1.0
 # Stats line interval (seconds)
 STATS_INTERVAL = 30
 
+# --- memory bounds ---------------------------------------------------------
+# Nothing in the running system may grow with traffic volume. These are the
+# ceilings that guarantee it; all of them are per-process, in ordinary heap
+# memory, and none of them hold packets.
+MAX_SOURCES = 4096          # source IPs tracked at once; oldest evicted first
+IDLE_EVICT_SECONDS = 60     # drop a source this long after its last packet
+PORT_TRACK_CAP = 256        # distinct ports remembered per source (>= any threshold)
+DST_TRACK_CAP = 64          # distinct destinations remembered per source
+MAX_CORRELATED_IPS = 4096   # IPs held by the alert correlator
+MAX_CALIBRATION_SAMPLES = 50_000   # reservoir size while calibrating
+
+# --- alert log retention ---------------------------------------------------
+ALERT_LOG_MAX_BYTES = 5 * 1024 * 1024
+ALERT_LOG_BACKUPS = 3       # alerts.log.1 .. .3, then the oldest is discarded
+
 # --- Verification rules (REQ 3) ---
 PORT_SCAN_THRESHOLD = 10          # unique destination ports within the window
 FLOOD_PPS_THRESHOLD = 100         # packets per second

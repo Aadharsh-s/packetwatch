@@ -3,6 +3,7 @@ import csv
 import logging
 import threading
 import time
+from collections import OrderedDict
 
 from . import config
 from .features import FEATURE_NAMES, SourceWindow
@@ -39,7 +40,10 @@ class Pipeline:
         self.risk = risk_map or RiskMap()
         self.clock = clock
         self.correlator = Correlator(clock=clock)
-        self.windows = {}
+        # OrderedDict as an LRU: a flood with spoofed source addresses would
+        # otherwise create one window per packet and never release any of them.
+        self.windows = OrderedDict()
+        self.evicted = 0
         self.lock = threading.Lock()
         self.stats = {"packets": 0, "judged": 0, "ml_flagged": 0, "unverified": 0,
                       "confirmed": 0, "rule_triggered": 0, "risk_escalated": 0}
@@ -79,6 +83,11 @@ class Pipeline:
             win = self.windows.get(src)
             if win is None:
                 win = self.windows[src] = SourceWindow()
+                if len(self.windows) > config.MAX_SOURCES:
+                    self.windows.popitem(last=False)   # drop the stalest source
+                    self.evicted += 1
+            else:
+                self.windows.move_to_end(src)
             win.add(now, dport, ip.dst, int(ip.proto), syn_only,
                     packet_length(pkt, ip))
             win.dirty = True
@@ -96,6 +105,7 @@ class Pipeline:
             if not force and now - self._last_sweep < config.EVAL_INTERVAL:
                 return []
             self._last_sweep = now
+            self._evict_idle(now)
             pending = []
             for src, win in self.windows.items():
                 if not win.dirty or src in self.blocker.blocked:
@@ -110,6 +120,16 @@ class Pipeline:
         mls = self.detector.predict_many([vec for _, vec, _, _ in pending])
         return [r for r in (self.evaluate(src, vec, hits, ml, risk)
                             for (src, vec, hits, risk), ml in zip(pending, mls)) if r]
+
+    def _evict_idle(self, now):
+        """Forget sources that have gone quiet. Caller holds the lock.
+
+        Runs from the sweep, so it happens on the ticker too: a host that goes
+        silent after a burst is released without waiting for new traffic.
+        """
+        cutoff = now - config.IDLE_EVICT_SECONDS
+        for ip in [ip for ip, w in self.windows.items() if w.last_seen < cutoff]:
+            del self.windows[ip]
 
     def evaluate(self, src, vec, hits, ml=None, risk=None):
         self.stats["judged"] += 1
@@ -168,13 +188,12 @@ class Pipeline:
             return
         self._last_stats = now
         with self.lock:
-            for ip in [ip for ip, w in self.windows.items()
-                       if not w.entries or now - w.entries[-1].ts > config.WINDOW_SECONDS]:
-                del self.windows[ip]
+            self._evict_idle(now)
             active = len(self.windows)
         s = self.stats
         print(f"[stats] packets={s['packets']} active_sources={active} "
               f"ml_flagged={s['ml_flagged']} unverified={s['unverified']} "
               f"confirmed={s['confirmed']} rules_only={s['rule_triggered']} "
               f"risk_escalated={s['risk_escalated']} "
-              f"blocked={len(self.blocker.blocked)}", flush=True)
+              f"blocked={len(self.blocker.blocked)}"
+              + (f" evicted={self.evicted}" if self.evicted else ""), flush=True)

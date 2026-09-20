@@ -163,8 +163,30 @@ Measured by `python -m evaluation.benchmark`; full numbers in [BENCHMARK.md](BEN
 | Detection latency | ~300 ms from first attack packet to block |
 | Memory | ~1 KB per tracked source; 3.6 MB at 5,000 active sources |
 | Idle CPU | ~0.5% of one core |
+| Memory under a 200,000-packet flood | ~10 KB for that source |
 
 For scale, saturating a 100 Mbit link with full-size frames is about 8,300 packets/sec, so one core covers a home or small-office link with headroom.
+
+### Memory is bounded by design
+
+An intrusion detector must not use more memory the more it is attacked, or flooding it becomes a way to exhaust the machine. Nothing per-packet is kept: each source owns one small set of counters per second of the window, recycled as the window slides, so a source costs the same whether it sends one packet a second or a million.
+
+| Situation | Before | Now |
+|---|---|---|
+| One source flooding 200,000 packets | 25.7 MB | 10 KB (**3,700x less**) |
+| One source scanning all 65,535 ports | 10.5 MB | 20 KB (**640x less**) |
+| 120,000 spoofed source addresses | unbounded | 26 MB, capped at 4,096 tracked |
+
+Every other structure that could grow forever is capped too, with the limits in `config.py`:
+
+- **tracked sources** - oldest dropped past 4,096, and any source silent for 60s is released;
+- **distinct ports per source** - capped at 256, far above any threshold that can fire, so a full port scan is still caught;
+- **the alert correlator** - addresses whose alerts have expired are forgotten, rather than kept forever;
+- **firewall block timers** - discarded once they fire;
+- **alerts.log** - rolls at 5 MB and keeps 3 old files, so a noisy night cannot fill the disk;
+- **calibration** - keeps a fixed-size random sample rather than every observation.
+
+Packet capture itself never buffers in our process: Scapy is called with `store=False`, so packets are handled and dropped. The capture driver's own kernel buffer is a fixed-size ring that Npcap manages; when traffic outruns us it drops packets there rather than growing.
 
 Benchmarking found two real inefficiencies, both now fixed: classifying sources one at a time cost 72x more than classifying a sweep's worth in one call, and `len(pkt)` made Scapy rebuild every packet (checksums included) just to read a length, which was 88% of per-packet cost. `packet_length()` reads the wire values instead.
 

@@ -143,6 +143,46 @@ def bench_memory(source_counts, per_source_packets=6):
     return out
 
 
+def bench_under_attack():
+        """Memory while being flooded and while being scanned.
+
+        These are the cases that used to hurt: both once grew with the amount of
+        traffic sent, which handed an attacker a way to exhaust memory just by
+        sending more. Both are now fixed-size per source.
+        """
+        from packetwatch.features import PORT_CAP, SourceWindow
+
+        out = {}
+        for label, packets, ports in (("flood_200k_packets", 200_000, 1),
+                                      ("scan_all_65535_ports", 65_535, 70_000)):
+            gc.collect()
+            tracemalloc.start()
+            w = SourceWindow()
+            for i in range(packets):
+                w.add(1000.0 + (i % 10) * 0.1, (i % ports) + 1, "10.0.0.1", 6,
+                      True, 500)
+            out[label] = {"packets": packets,
+                          "peak_kb": tracemalloc.get_traced_memory()[1] / 1e3}
+            tracemalloc.stop()
+
+        # a spoofed-source flood, against the whole pipeline
+        clock = time.time
+        pipe = quiet_pipeline(clock=clock)
+        wire = [IP(bytes(IP(src=_src_ip(i), dst=HOST) / TCP(dport=80, flags="S")))
+                for i in range(20_000)]
+        gc.collect()
+        tracemalloc.start()
+        for p in wire:
+            pipe.handle(p)
+        out["spoofed_sources"] = {
+            "unique_sources": len(wire), "tracked": len(pipe.windows),
+            "evicted": pipe.evicted,
+            "peak_mb": tracemalloc.get_traced_memory()[1] / 1e6}
+        tracemalloc.stop()
+        out["port_cap"] = PORT_CAP
+        return out
+
+
 def bench_idle(seconds=3.0):
     """CPU used while running but seeing no traffic (the ticker thread only)."""
     import threading
@@ -201,6 +241,8 @@ def main():
     lat = bench_latency()
     print("measuring memory...", flush=True)
     mem = bench_memory([100, 1000, 5000])
+    print("measuring memory under attack...", flush=True)
+    attack = bench_under_attack()
     print("measuring idle cost...", flush=True)
     idle = bench_idle()
 
@@ -255,6 +297,24 @@ def main():
         "older than that are dropped on every packet, and idle sources are evicted "
         f"every {config.STATS_INTERVAL}s, so usage tracks active sources rather than "
         "total traffic seen.", "",
+        "## Memory while under attack", "",
+        "Memory must not grow with how much an attacker sends, or flooding the "
+        "host becomes a way to exhaust its memory. Nothing per-packet is stored: "
+        "each source keeps one set of counters per second of the window, recycled "
+        "as the window slides.", "",
+        "| Situation | Peak memory |",
+        "|---|---|",
+        f"| One source flooding 200,000 packets | "
+        f"{attack['flood_200k_packets']['peak_kb']:.0f} KB |",
+        f"| One source scanning all 65,535 ports | "
+        f"{attack['scan_all_65535_ports']['peak_kb']:.0f} KB |",
+        f"| {attack['spoofed_sources']['unique_sources']:,} spoofed source addresses | "
+        f"{attack['spoofed_sources']['peak_mb']:.1f} MB "
+        f"({attack['spoofed_sources']['tracked']:,} tracked, "
+        f"{attack['spoofed_sources']['evicted']:,} evicted) |", "",
+        f"Distinct ports per source are remembered up to {attack['port_cap']}, well "
+        "above any threshold that can fire, so a scan of every port is still caught "
+        "while only the cap is stored.", "",
         "## Idle cost and startup", "",
         f"- Idle CPU (running, no traffic): {idle['cpu_percent']:.2f}% of one core, "
         "the once-a-second sweep thread.",
@@ -271,6 +331,7 @@ def main():
     Path(args.out).with_suffix(".json").write_text(json.dumps(
         {"host": {"cpu": cpu_name, "cores": cores, "ram_gb": total_ram},
          "throughput": thr, "latency": lat, "memory": mem, "idle": idle,
+         "under_attack": attack,
          "model": model}, indent=2), encoding="utf-8")
     print("\n".join(rep[8:]))
     print(f"\nWrote {args.out}")

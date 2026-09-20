@@ -8,61 +8,61 @@
     {
       "sources": 1,
       "wire": true,
-      "packets": 60000,
-      "seconds": 2.489488600000186,
-      "pps": 24101.335511235324,
-      "us_per_packet": 41.49147666666977,
-      "cpu_seconds": 2.46875,
-      "cpu_per_packet_us": 41.145833333333336,
-      "judged": 2
+      "packets": 40000,
+      "seconds": 0.880622300000141,
+      "pps": 45422.42457406949,
+      "us_per_packet": 22.015557500003524,
+      "cpu_seconds": 0.875,
+      "cpu_per_packet_us": 21.875,
+      "judged": 1
     },
     {
       "sources": 50,
       "wire": true,
-      "packets": 60000,
-      "seconds": 2.930307200000243,
-      "pps": 20475.6688991499,
-      "us_per_packet": 48.838453333337384,
-      "cpu_seconds": 2.765625,
-      "cpu_per_packet_us": 46.09375,
-      "judged": 51
+      "packets": 40000,
+      "seconds": 0.9356102000001556,
+      "pps": 42752.84728618109,
+      "us_per_packet": 23.39025500000389,
+      "cpu_seconds": 0.90625,
+      "cpu_per_packet_us": 22.65625,
+      "judged": 1
     },
     {
       "sources": 1000,
       "wire": true,
-      "packets": 60000,
-      "seconds": 2.893307199999981,
-      "pps": 20737.514495522766,
-      "us_per_packet": 48.22178666666635,
-      "cpu_seconds": 2.703125,
-      "cpu_per_packet_us": 45.05208333333333,
-      "judged": 2001
+      "packets": 40000,
+      "seconds": 1.1707870999998704,
+      "pps": 34165.05016155749,
+      "us_per_packet": 29.26967749999676,
+      "cpu_seconds": 1.171875,
+      "cpu_per_packet_us": 29.296875,
+      "judged": 1001
     }
   ],
   "latency": {
     "samples": 15,
-    "median_s": 0.31733170000006794,
-    "p95_s": 0.32152180000048247,
-    "max_s": 0.3226344999993671
+    "median_s": 0.13965920000009646,
+    "p95_s": 0.21679220000032728,
+    "max_s": 0.27150650000021415
   },
   "memory": [
     {
       "sources": 100,
-      "rss_delta_mb": 0.229376,
-      "traced_peak_mb": 0.165503,
-      "kb_per_source": 1.65503
+      "rss_delta_mb": 0.32768,
+      "traced_peak_mb": 0.611041,
+      "kb_per_source": 6.11041
     },
     {
       "sources": 1000,
-      "rss_delta_mb": 2.92864,
-      "traced_peak_mb": 1.959901,
-      "kb_per_source": 1.9599010000000001
+      "rss_delta_mb": 2.617344,
+      "traced_peak_mb": 6.09443,
+      "kb_per_source": 6.09443
     },
     {
-      "sources": 5000,
-      "rss_delta_mb": 3.64544,
-      "traced_peak_mb": 9.238407,
-      "kb_per_source": 1.8476814
+      "sources": 4096,
+      "rss_delta_mb": 13.135872,
+      "traced_peak_mb": 27.341082,
+      "kb_per_source": 6.67506884765625
     }
   ],
   "idle": {
@@ -70,9 +70,26 @@
     "cpu_seconds": 0.0,
     "cpu_percent": 0.0
   },
+  "under_attack": {
+    "flood_200k_packets": {
+      "packets": 200000,
+      "peak_kb": 6.896
+    },
+    "scan_all_65535_ports": {
+      "packets": 65535,
+      "peak_kb": 16.424
+    },
+    "spoofed_sources": {
+      "unique_sources": 20000,
+      "tracked": 4096,
+      "evicted": 15904,
+      "peak_mb": 27.340239
+    },
+    "port_cap": 256
+  },
   "model": {
-    "load_s": 0.004186699999991106,
-    "predict_ms": 0.4986165999998775,
-    "predict_batched_ms": 0.0074580399999831576
+    "load_s": 0.0011884000000463857,
+    "predict_ms": 0.22520220000001245,
+    "predict_batched_ms": 0.003000770000016928
   }
 }

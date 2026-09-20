@@ -8,6 +8,7 @@ import logging
 import subprocess
 import threading
 from datetime import datetime, timezone
+from pathlib import Path
 
 from . import config
 
@@ -50,7 +51,7 @@ class FirewallBlocker:
         self.run = runner or subprocess.run
         self.blocked = set()
         self._lock = threading.Lock()
-        self._timers = []
+        self._timers = set()
 
     def is_protected(self, ip):
         addr = ipaddress.ip_address(ip)
@@ -87,11 +88,21 @@ class FirewallBlocker:
                 return "block FAILED"
             self.blocked.add(ip)
         if self.ttl_min:
-            t = threading.Timer(self.ttl_min * 60, self.unblock, args=(ip,))
+            # timers are held only while alive, so a long run does not collect
+            # one dead Timer object per block it ever made
+            t = threading.Timer(self.ttl_min * 60, self._expire, args=(ip,))
             t.daemon = True
+            with self._lock:
+                self._timers = {x for x in self._timers if x.is_alive()}
+                self._timers.add(t)
             t.start()
-            self._timers.append(t)
         return "dry-run block" if self.dry_run else "blocked"
+
+    def _expire(self, ip):
+        """TTL fired: lift the block and drop the finished timer."""
+        self.unblock(ip)
+        with self._lock:
+            self._timers = {t for t in self._timers if t.is_alive()}
 
     def unblock(self, ip):
         with self._lock:
@@ -126,9 +137,36 @@ class Alerter:
     COLORS = {"HIGH": "\033[93m", "CRITICAL": "\033[91m", "INFO": "\033[96m"}
     RESET = "\033[0m"
 
-    def __init__(self, log_path=config.ALERT_LOG, console=True):
+    def __init__(self, log_path=config.ALERT_LOG, console=True,
+                 max_bytes=config.ALERT_LOG_MAX_BYTES,
+                 backups=config.ALERT_LOG_BACKUPS):
         self.log_path = log_path
         self.console = console
+        self.max_bytes = max_bytes
+        self.backups = backups
+
+    def _rotate_if_needed(self):
+        """Keep alerts.log bounded: roll at max_bytes, keep `backups` old files.
+
+        An IDS left running writes alerts forever, and one noisy night should
+        not fill the disk. The newest alerts are always in alerts.log itself.
+        """
+        path = Path(self.log_path)
+        try:
+            if not self.max_bytes or not path.exists():
+                return
+            if path.stat().st_size < self.max_bytes:
+                return
+            oldest = Path(str(path) + f".{self.backups}")
+            if oldest.exists():
+                oldest.unlink()
+            for n in range(self.backups - 1, 0, -1):
+                src = Path(str(path) + f".{n}")
+                if src.exists():
+                    src.replace(Path(str(path) + f".{n + 1}"))
+            path.replace(Path(str(path) + ".1"))
+        except OSError as exc:
+            log.warning("could not rotate %s: %s", path, exc)
 
     def alert(self, ip, severity, ml, hits, action, trigger="ml+rule", risk=None):
         record = {
@@ -153,6 +191,7 @@ class Alerter:
                   + (f" | targets {risk.get('cve') or 'a known-vulnerable service'}"
                      if risk else "") + self.RESET, flush=True)
         if self.log_path:
+            self._rotate_if_needed()
             with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record) + "\n")
         return record

@@ -90,11 +90,14 @@ class Correlator:
     """Escalates severity when one IP trips several distinct rules within 60 s."""
 
     def __init__(self, window=config.CORRELATION_WINDOW,
-                 min_rules=config.CORRELATION_MIN_RULES, clock=time.time):
+                 min_rules=config.CORRELATION_MIN_RULES, clock=time.time,
+                 max_ips=config.MAX_CORRELATED_IPS):
         self.window = window
         self.min_rules = min_rules
         self.clock = clock
+        self.max_ips = max_ips
         self.seen = defaultdict(dict)  # ip -> {rule: last_ts}
+        self._last_sweep = float("-inf")
 
     def severity(self, ip, hits):
         now = self.clock()
@@ -103,4 +106,24 @@ class Correlator:
             rules[h.rule] = now
         for rule in [r for r, ts in rules.items() if now - ts > self.window]:
             del rules[rule]
-        return "CRITICAL" if len(rules) >= self.min_rules else "HIGH"
+        verdict = "CRITICAL" if len(rules) >= self.min_rules else "HIGH"
+        self._forget_stale(now)
+        return verdict
+
+    def _forget_stale(self, now):
+        """Drop IPs whose alerts have all expired.
+
+        Without this the correlator keeps a dictionary entry for every address
+        that ever tripped a rule, which on a busy or spoofed-source network is a
+        slow leak for no benefit: an expired entry can never change a verdict.
+        """
+        if now - self._last_sweep < self.window and len(self.seen) <= self.max_ips:
+            return
+        self._last_sweep = now
+        cutoff = now - self.window
+        for ip in [ip for ip, rules in self.seen.items()
+                   if not rules or max(rules.values()) < cutoff]:
+            del self.seen[ip]
+        if len(self.seen) > self.max_ips:      # pathological case: keep the freshest
+            keep = sorted(self.seen.items(), key=lambda kv: -max(kv[1].values()))
+            self.seen = defaultdict(dict, dict(keep[:self.max_ips]))
