@@ -15,4 +15,5 @@ packetwatch/models/thresholds.json
 
 # Runtime output
 alerts.log
+risk.json
 *.pcap
