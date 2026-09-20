@@ -226,3 +226,5 @@ Reports produced by those scripts: [EVALUATION.md](EVALUATION.md), [UNSW_EVALUAT
   3. Retrain with `--train --csv rows.csv`.
 - MultinomialNB is weaker on this data (about 0.91 accuracy on the synthetic hold-out). It contributes through the OR fusion.
 - Blocks made by a run that is later killed stay in place until you run `--unblock-all`.
+#   p a c k e t w a t c h  
+ 
