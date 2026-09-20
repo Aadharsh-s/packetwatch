@@ -1,0 +1,78 @@
+{
+  "host": {
+    "cpu": "Intel64 Family 6 Model 140 Stepping 2, GenuineIntel",
+    "cores": 4,
+    "ram_gb": 8.215298048
+  },
+  "throughput": [
+    {
+      "sources": 1,
+      "wire": true,
+      "packets": 60000,
+      "seconds": 2.489488600000186,
+      "pps": 24101.335511235324,
+      "us_per_packet": 41.49147666666977,
+      "cpu_seconds": 2.46875,
+      "cpu_per_packet_us": 41.145833333333336,
+      "judged": 2
+    },
+    {
+      "sources": 50,
+      "wire": true,
+      "packets": 60000,
+      "seconds": 2.930307200000243,
+      "pps": 20475.6688991499,
+      "us_per_packet": 48.838453333337384,
+      "cpu_seconds": 2.765625,
+      "cpu_per_packet_us": 46.09375,
+      "judged": 51
+    },
+    {
+      "sources": 1000,
+      "wire": true,
+      "packets": 60000,
+      "seconds": 2.893307199999981,
+      "pps": 20737.514495522766,
+      "us_per_packet": 48.22178666666635,
+      "cpu_seconds": 2.703125,
+      "cpu_per_packet_us": 45.05208333333333,
+      "judged": 2001
+    }
+  ],
+  "latency": {
+    "samples": 15,
+    "median_s": 0.31733170000006794,
+    "p95_s": 0.32152180000048247,
+    "max_s": 0.3226344999993671
+  },
+  "memory": [
+    {
+      "sources": 100,
+      "rss_delta_mb": 0.229376,
+      "traced_peak_mb": 0.165503,
+      "kb_per_source": 1.65503
+    },
+    {
+      "sources": 1000,
+      "rss_delta_mb": 2.92864,
+      "traced_peak_mb": 1.959901,
+      "kb_per_source": 1.9599010000000001
+    },
+    {
+      "sources": 5000,
+      "rss_delta_mb": 3.64544,
+      "traced_peak_mb": 9.238407,
+      "kb_per_source": 1.8476814
+    }
+  ],
+  "idle": {
+    "seconds": 3.0,
+    "cpu_seconds": 0.0,
+    "cpu_percent": 0.0
+  },
+  "model": {
+    "load_s": 0.004186699999991106,
+    "predict_ms": 0.4986165999998775,
+    "predict_batched_ms": 0.0074580399999831576
+  }
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<get_reports_response status="200" status_text="OK">
+  <report id="d41d8cd9-1111-2222-3333-444455556666">
+    <scan_start>2026-09-20T09:00:00Z</scan_start>
+    <results max="4">
+      <result id="r1">
+        <name>Microsoft Windows SMB Remote Code Execution (EternalBlue)</name>
+        <host>192.168.0.50<asset asset_id="a1"/></host>
+        <port>445/tcp</port>
+        <nvt oid="1.3.6.1.4.1.25623.1.0.810676">
+          <name>SMBv1 RCE</name>
+          <refs>
+            <ref type="cve" id="CVE-2017-0144"/>
+            <ref type="url" id="https://msrc.microsoft.com/ms17-010"/>
+          </refs>
+          <tags>summary=Remote code execution via SMBv1.|cvss_base_vector=AV:N/AC:L</tags>
+        </nvt>
+        <threat>High</threat>
+        <severity>9.3</severity>
+        <description>The remote host is affected by MS17-010.</description>
+      </result>
+      <result id="r2">
+        <name>OpenSSH Information Disclosure</name>
+        <host>192.168.0.50</host>
+        <port>22/tcp</port>
+        <nvt oid="1.3.6.1.4.1.25623.1.0.900000">
+          <name>OpenSSH issue</name>
+          <refs><ref type="cve" id="CVE-2023-38408"/></refs>
+          <tags>summary=OpenSSH agent forwarding flaw.</tags>
+        </nvt>
+        <threat>Medium</threat>
+        <severity>5.5</severity>
+        <description>See CVE-2023-38408 for details.</description>
+      </result>
+      <result id="r3">
+        <name>TCP Timestamps Information Disclosure</name>
+        <host>192.168.0.60</host>
+        <port>general/tcp</port>
+        <nvt oid="1.3.6.1.4.1.25623.1.0.80091"><name>TCP timestamps</name><refs/></nvt>
+        <threat>Low</threat>
+        <severity>2.6</severity>
+        <description>Informational only.</description>
+      </result>
+      <result id="r4">
+        <name>Apache HTTP Server Path Traversal</name>
+        <host>203.0.113.10</host>
+        <port>80/tcp</port>
+        <nvt oid="1.3.6.1.4.1.25623.1.0.147000">
+          <name>Apache traversal</name>
+          <refs><ref type="cve" id="CVE-2021-41773"/></refs>
+        </nvt>
+        <threat>High</threat>
+        <severity>7.5</severity>
+        <description>Path traversal in Apache 2.4.49.</description>
+      </result>
+    </results>
+  </report>
+</get_reports_response>

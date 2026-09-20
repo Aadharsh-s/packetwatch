@@ -1,0 +1,57 @@
+{
+  "train": 116359,
+  "test": 144563,
+  "kev_in_test": 509,
+  "auc": {
+    "tree": 0.7124568586387178,
+    "cvss": 0.764982798281031,
+    "epss": 0.9738468517440646
+  },
+  "strategies": [
+    {
+      "strategy": "Decision tree (this project)",
+      "precision": 0.008820221393476588,
+      "recall": 0.5854616895874263,
+      "f1": 0.017378626621956553,
+      "flagged": 33786,
+      "caught": 298,
+      "note": ""
+    },
+    {
+      "strategy": "CVSS >= 9.0 (patch the criticals)",
+      "precision": 0.01229921009383449,
+      "recall": 0.45579567779960706,
+      "f1": 0.023952095808383235,
+      "flagged": 18863,
+      "caught": 232,
+      "note": ""
+    },
+    {
+      "strategy": "CVSS >= 7.0 (patch high and above)",
+      "precision": 0.0060340826205158805,
+      "recall": 0.8939096267190569,
+      "f1": 0.011987248728824723,
+      "flagged": 75405,
+      "caught": 455,
+      "note": ""
+    },
+    {
+      "strategy": "EPSS >= 0.1 (reference model)",
+      "precision": 0.1793913507741591,
+      "recall": 0.6601178781925344,
+      "f1": 0.28211586901763225,
+      "flagged": 1873,
+      "caught": 336,
+      "note": ""
+    },
+    {
+      "strategy": "Decision tree + EPSS as a feature",
+      "precision": 0.10695538057742782,
+      "recall": 0.6404715127701375,
+      "f1": 0.18330053415799832,
+      "flagged": 3048,
+      "caught": 326,
+      "note": ""
+    }
+  ]
+}
