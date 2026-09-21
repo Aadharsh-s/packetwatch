@@ -25,10 +25,9 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.tree import DecisionTreeClassifier
-
 from packetwatch import config
 from packetwatch.features import FEATURE_NAMES
+from packetwatch.model import make_tree
 from packetwatch.verify import rule_counts
 
 NEEDED = ["Source IP", "Destination IP", "Destination Port", "Protocol", "Timestamp",
@@ -118,7 +117,7 @@ def flow_scores(name, pred, n_attack, n_benign):
 def evaluate(train, test):
     X_tr, y_tr = train[FEATURE_NAMES].to_numpy(), train["label"].to_numpy()
     X_te, y_te = test[FEATURE_NAMES].to_numpy(), test["label"].to_numpy()
-    dt = DecisionTreeClassifier(max_depth=6, class_weight="balanced", random_state=42)
+    dt = make_tree()
     nb = MultinomialNB()
     dt.fit(X_tr, y_tr)
     nb.fit(X_tr, y_tr)

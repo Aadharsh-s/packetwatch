@@ -149,6 +149,18 @@ def load_csv(path):
     return X, y
 
 
+def make_tree():
+    """The Decision Tree configuration, shared by training and every evaluation.
+
+    No class weighting. It was 'balanced' until MODEL_COMPARISON.md measured it on
+    real, imbalanced traffic: on UNSW-NB15 it cut F1 from 0.733 to 0.438 and raised
+    false alarms from 0.95% to 16.8%. The synthetic training set is already
+    balanced, so dropping it leaves the shipped model's decisions unchanged, and
+    it stops the problem from appearing if the model is retrained on real traffic.
+    """
+    return DecisionTreeClassifier(max_depth=6, random_state=42)
+
+
 def train(csv_path=None, verbose=True):
     X, y = generate_training_data()
     if csv_path:
@@ -157,7 +169,7 @@ def train(csv_path=None, verbose=True):
         y += cy
     X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.25, random_state=42,
                                               stratify=y)
-    dt = DecisionTreeClassifier(max_depth=6, class_weight="balanced", random_state=42)
+    dt = make_tree()
     nb = MultinomialNB()
     dt.fit(X_tr, y_tr)
     nb.fit(X_tr, y_tr)

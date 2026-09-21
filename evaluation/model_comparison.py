@@ -34,6 +34,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from packetwatch import config
 from packetwatch.features import FEATURE_NAMES
+from packetwatch.model import make_tree
 from packetwatch.verify import rule_counts
 
 warnings.filterwarnings("ignore")
@@ -62,7 +63,15 @@ def models():
                                                       random_state=SEED)),
                         ("nb", MultinomialNB())],
             final_estimator=LogisticRegression(max_iter=1000), cv=3, n_jobs=-1),
-        "LightGBM": LGBMClassifier(n_estimators=200, random_state=SEED, verbose=-1),
+        # learning rate 0.02 (with more rounds), not the default 0.1: multi-class
+        # training diverges at higher rates on this imbalanced data. On TON_IoT at
+        # 0.1 the validation log-loss fell to 0.08 by round 50, then blew up to 19.5
+        # and the model collapsed to 0.43 micro-F1 on its own training data; on
+        # UNSW-NB15 even 0.05 diverged after round 27. At 0.02 it is stable on all
+        # three datasets and level with Random Forest. The Decision Tree needed no
+        # such tuning, which is itself a point in its favour for a deployed IPS.
+        "LightGBM": LGBMClassifier(n_estimators=400, learning_rate=0.02,
+                                   random_state=SEED, verbose=-1),
     }
 
 
@@ -132,13 +141,8 @@ def compare(data, name):
                                               zero_division=0),
                       "train_s": mfit, "size_kb": size_kb(mmodel)})
 
-    # the shipped configuration: class-balanced DT, NB, OR fusion, rule verification
-    shipped_dt = DecisionTreeClassifier(max_depth=6, class_weight="balanced",
-                                        random_state=SEED)
-    dt_fit = timed_fit(shipped_dt, Xtr, ytr)
-    binary.append(binary_row("Decision Tree, class-balanced (as shipped)", yte,
-                             shipped_dt.predict(Xte), dt_fit, size_kb(shipped_dt),
-                             predict_us(shipped_dt, Xte)))
+    # the shipped configuration: make_tree() DT, NB, OR fusion, rule verification
+    shipped_dt = fitted["Decision Tree"]          # identical to make_tree()
     fused = (shipped_dt.predict(Xte) == 1) | \
             (fitted["Multinomial NB"].predict(Xte) == 1)
     counts = rule_counts(Xte)
@@ -146,9 +150,9 @@ def compare(data, name):
     shipped = (fused & (counts >= 1)) | ((counts >= trigger) if trigger else False)
     binary.append(binary_row("PacketWatch (DT or NB + rule verification)", yte,
                              shipped.astype(int),
-                             binary[-1]["train_s"] + binary[1]["train_s"],
-                             binary[-1]["size_kb"] + binary[1]["size_kb"],
-                             binary[-1]["predict_us"] + binary[1]["predict_us"]))
+                             binary[0]["train_s"] + binary[1]["train_s"],
+                             binary[0]["size_kb"] + binary[1]["size_kb"],
+                             binary[0]["predict_us"] + binary[1]["predict_us"]))
 
     classes = pd.Series(y_multi).value_counts()
     return {"dataset": name, "n": len(data), "attack_share": float(y_bin.mean()),
@@ -172,7 +176,7 @@ def mutual_information(result, sample=150_000):
     subsets = []
     for k in (2, 3, 5, 7, 10):
         cols = order[:k]
-        dt = DecisionTreeClassifier(max_depth=6, class_weight="balanced", random_state=SEED)
+        dt = make_tree()
         dt.fit(Xtr[:, cols], ytr)
         pred = dt.predict(Xte[:, cols])
         p, r, f1, _ = precision_recall_fscore_support(yte, pred, average="binary",
@@ -283,9 +287,10 @@ def main():
         "reported, because a live system pays it on every sweep.", "",
         "Every model sees the same 10 features PacketWatch extracts from live traffic, "
         "computed per (source, destination host, window), with a stratified 70/30 split. "
-        "All models in the main tables are trained without class weighting, so they "
-        "differ by algorithm alone; the class-balanced Decision Tree PacketWatch ships "
-        "is listed separately, and weighting is examined in its own section. Because "
+        "All models are trained without class weighting, so they differ by algorithm "
+        "alone. The Decision Tree row is exactly the configuration PacketWatch ships "
+        "(`packetwatch.model.make_tree`), and weighting is examined in its own section. "
+        "Because "
         "windows are per destination host, `unique_dst_ips` is always 1 here and carries "
         "no information by construction.",
         "",

@@ -23,12 +23,10 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.tree import DecisionTreeClassifier
-
 from packetwatch import config
 from packetwatch.features import FEATURE_NAMES
+from packetwatch.model import generate_training_data, make_tree
 from packetwatch.verify import rule_counts
-from packetwatch.model import Detector, generate_training_data
 
 WINDOW = config.WINDOW_SECONDS          # 10 s, the live window
 MAX_SPAN = 60                           # cap on how far one flow is spread
@@ -112,7 +110,7 @@ def table(rows):
 
 
 def fit(X, y):
-    dt = DecisionTreeClassifier(max_depth=6, class_weight="balanced", random_state=42)
+    dt = make_tree()
     nb = MultinomialNB()
     return dt.fit(X, y), nb.fit(X, y)
 

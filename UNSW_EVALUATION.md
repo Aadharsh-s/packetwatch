@@ -18,8 +18,8 @@ Both model pairs below see the same test set. One pair is trained on the invente
 |---|---|---|---|---|---|---|---|---|
 | synthetic-trained: DT or NB only | 0.051 | 0.099 | 0.067 | 22.58% | 2,592 | 48,439 | 23,597 | 166,061 |
 | synthetic-trained: full pipeline | 0.052 | 0.098 | 0.068 | 21.67% | 2,562 | 46,472 | 23,627 | 168,028 |
-| UNSW-trained: DT or NB only | 0.328 | 0.985 | 0.492 | 24.61% | 25,800 | 52,786 | 389 | 161,714 |
-| UNSW-trained: full pipeline | 0.199 | 0.097 | 0.131 | 4.77% | 2,546 | 10,235 | 23,643 | 204,265 |
+| UNSW-trained: DT or NB only | 0.466 | 0.766 | 0.580 | 10.70% | 20,063 | 22,946 | 6,126 | 191,554 |
+| UNSW-trained: full pipeline | 0.168 | 0.074 | 0.103 | 4.48% | 1,939 | 9,610 | 24,250 | 204,890 |
 | rules alone (no ML) | 0.053 | 0.099 | 0.069 | 21.69% | 2,602 | 46,517 | 23,587 | 167,983 |
 
 ### Random 70/30 split
@@ -28,22 +28,22 @@ Both model pairs below see the same test set. One pair is trained on the invente
 |---|---|---|---|---|---|---|---|---|
 | synthetic-trained: DT or NB only | 0.029 | 0.099 | 0.045 | 22.67% | 1,526 | 51,092 | 13,818 | 174,271 |
 | synthetic-trained: full pipeline | 0.030 | 0.098 | 0.046 | 21.77% | 1,503 | 49,058 | 13,841 | 176,305 |
-| UNSW-trained: DT or NB only | 0.213 | 0.985 | 0.351 | 24.74% | 15,115 | 55,756 | 229 | 169,607 |
-| UNSW-trained: full pipeline | 0.125 | 0.097 | 0.109 | 4.60% | 1,487 | 10,362 | 13,857 | 215,001 |
+| UNSW-trained: DT or NB only | 0.321 | 0.755 | 0.451 | 10.88% | 11,589 | 24,514 | 3,755 | 200,849 |
+| UNSW-trained: full pipeline | 0.095 | 0.065 | 0.077 | 4.22% | 1,001 | 9,514 | 14,343 | 215,849 |
 | rules alone (no ML) | 0.030 | 0.099 | 0.046 | 21.79% | 1,520 | 49,097 | 13,824 | 176,266 |
 
 ## Detection rate per attack type (temporal split, share of attack windows blocked by the full pipeline)
 
 | Attack type | Attack windows | Synthetic-trained | UNSW-trained |
 |---|---|---|---|
-| exploits | 11,416 | 12.0% | 11.9% |
-| reconnaissance | 6,448 | 2.8% | 2.5% |
-| generic | 3,119 | 3.7% | 4.3% |
-| fuzzers | 2,427 | 28.4% | 28.0% |
-| dos | 1,682 | 10.9% | 10.9% |
-| shellcode | 783 | 1.1% | 0.9% |
-| backdoor | 150 | 7.3% | 7.3% |
-| worms | 94 | 5.3% | 5.3% |
+| exploits | 11,416 | 12.0% | 8.3% |
+| reconnaissance | 6,448 | 2.8% | 2.0% |
+| generic | 3,119 | 3.7% | 3.6% |
+| fuzzers | 2,427 | 28.4% | 24.2% |
+| dos | 1,682 | 10.9% | 8.7% |
+| shellcode | 783 | 1.1% | 0.6% |
+| backdoor | 150 | 7.3% | 6.0% |
+| worms | 94 | 5.3% | 2.1% |
 | analysis | 70 | 0.0% | 0.0% |
 
 

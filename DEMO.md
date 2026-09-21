@@ -21,7 +21,7 @@ python -m packetwatch --list-ifaces
 ```
 
 What you should see: training prints two accuracy tables, the feeds download
-about 4 MB, the tests end in `OK` (56 tests), and the interface list contains
+about 4 MB, the tests end in `OK` (57 tests), and the interface list contains
 `'Wi-Fi'`. Write your interface name down - every live command needs it.
 
 Then rehearse the blocking test once, so nothing is a surprise:
@@ -125,7 +125,7 @@ python -m packetwatch --unblock-all
 python -m unittest discover tests
 ```
 
-56 tests in ten seconds is a strong closing slide.
+57 tests in ten seconds is a strong closing slide.
 
 ---
 
@@ -152,9 +152,9 @@ paper describes but does not detail. The comparison table is at the top of the
 README.
 
 **"How accurate is it?"**
-On the attacks it targets - scans and floods - F1 is 0.97, against the paper's
+On the attacks it targets - scans and floods - F1 is 0.98, against the paper's
 0.91. Across every attack type in the dataset, including ones it cannot see, it
-is 0.90. Both numbers are in `EVALUATION.md`; quote the second one first.
+is 0.92. Both numbers are in `EVALUATION.md`; quote the second one first.
 
 **"What can it not detect?"**
 Attacks that look like ordinary web browsing - slow attacks, website attacks,

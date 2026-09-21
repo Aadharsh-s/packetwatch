@@ -247,6 +247,14 @@ class ModelTests(unittest.TestCase):
         for res in attacks + benign:
             self.assertEqual(res["flagged"], res["dt"] or res["nb"])
 
+    def test_decision_tree_is_not_class_weighted(self):
+        """Weighting cut F1 from 0.73 to 0.44 on real traffic (MODEL_COMPARISON.md)."""
+        from packetwatch.model import make_tree
+
+        self.assertIsNone(make_tree().class_weight)
+        dt, _ = train(verbose=False)
+        self.assertIsNone(dt.class_weight)
+
     def test_batched_prediction_matches_single(self):
         import random
 

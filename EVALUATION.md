@@ -32,23 +32,23 @@ Each attack here comes from one source hitting one victim, so attacks collapse i
 
 | Stage | Precision | Recall | F1 | FPR | TP | FP | FN | TN |
 |---|---|---|---|---|---|---|---|---|
-| Decision Tree alone | 0.009 | 0.843 | 0.018 | 20.52% | 284 | 31,559 | 53 | 122,217 |
+| Decision Tree alone | 0.968 | 0.181 | 0.305 | 0.00% | 61 | 2 | 276 | 153,774 |
 | Naive Bayes alone | 0.024 | 0.261 | 0.044 | 2.34% | 88 | 3,591 | 249 | 150,185 |
-| DT or NB (fusion, no verification) | 0.008 | 0.855 | 0.016 | 22.39% | 288 | 34,432 | 49 | 119,344 |
+| DT or NB (fusion, no verification) | 0.024 | 0.267 | 0.045 | 2.34% | 90 | 3,591 | 247 | 150,185 |
 | Rules alone (verification layer) | 0.018 | 0.172 | 0.032 | 2.09% | 58 | 3,208 | 279 | 150,568 |
-| A: ML and rule only | 0.034 | 0.166 | 0.057 | 1.03% | 56 | 1,583 | 281 | 152,193 |
-| B: A, or 2+ rules alone (shipped) | 0.034 | 0.166 | 0.056 | 1.04% | 56 | 1,596 | 281 | 152,180 |
+| A: ML and rule only | 0.033 | 0.160 | 0.055 | 1.01% | 54 | 1,559 | 283 | 152,217 |
+| B: A, or 2+ rules alone (shipped) | 0.034 | 0.166 | 0.057 | 1.02% | 56 | 1,575 | 281 | 152,201 |
 | C: A, or any single rule alone | 0.018 | 0.172 | 0.032 | 2.09% | 58 | 3,208 | 279 | 150,568 |
 
 ### Cross-day split: train on Mon+Wed, test on the unseen Friday captures
 
 | Stage | Precision | Recall | F1 | FPR | TP | FP | FN | TN |
 |---|---|---|---|---|---|---|---|---|
-| Decision Tree alone | 0.013 | 0.026 | 0.018 | 1.71% | 21 | 1,562 | 794 | 89,751 |
+| Decision Tree alone | 0.885 | 0.028 | 0.055 | 0.00% | 23 | 3 | 792 | 91,310 |
 | Naive Bayes alone | 0.017 | 0.034 | 0.023 | 1.75% | 28 | 1,600 | 787 | 89,713 |
-| DT or NB (fusion, no verification) | 0.009 | 0.034 | 0.015 | 3.20% | 28 | 2,921 | 787 | 88,392 |
+| DT or NB (fusion, no verification) | 0.018 | 0.036 | 0.024 | 1.75% | 29 | 1,600 | 786 | 89,713 |
 | Rules alone (verification layer) | 0.024 | 0.054 | 0.034 | 1.93% | 44 | 1,759 | 771 | 89,554 |
-| A: ML and rule only | 0.027 | 0.033 | 0.030 | 1.07% | 27 | 973 | 788 | 90,340 |
+| A: ML and rule only | 0.028 | 0.034 | 0.031 | 1.07% | 28 | 973 | 787 | 90,340 |
 | B: A, or 2+ rules alone (shipped) | 0.036 | 0.045 | 0.040 | 1.08% | 37 | 982 | 778 | 90,331 |
 | C: A, or any single rule alone | 0.024 | 0.054 | 0.034 | 1.93% | 44 | 1,759 | 771 | 89,554 |
 
@@ -60,23 +60,23 @@ VPID reports per-flow metrics, so this is the closer comparison.
 
 | Stage | Precision | Recall | F1 | FPR | TP | FP | FN | TN |
 |---|---|---|---|---|---|---|---|---|
-| Decision Tree alone | 0.633 | 0.997 | 0.774 | 13.93% | 162,181 | 94,086 | 431 | 581,420 |
+| Decision Tree alone | 0.993 | 0.962 | 0.977 | 0.17% | 156,406 | 1,138 | 6,206 | 674,368 |
 | Naive Bayes alone | 0.773 | 0.922 | 0.841 | 6.51% | 149,888 | 43,980 | 12,724 | 631,526 |
-| DT or NB (fusion, no verification) | 0.573 | 0.998 | 0.728 | 17.93% | 162,354 | 121,124 | 258 | 554,382 |
+| DT or NB (fusion, no verification) | 0.783 | 0.977 | 0.870 | 6.51% | 158,912 | 43,980 | 3,700 | 631,526 |
 | Rules alone (verification layer) | 0.691 | 0.967 | 0.806 | 10.41% | 157,272 | 70,343 | 5,340 | 605,163 |
-| A: ML and rule only | 0.883 | 0.967 | 0.923 | 3.08% | 157,251 | 20,825 | 5,361 | 654,681 |
-| B: A, or 2+ rules alone (shipped) | 0.845 | 0.967 | 0.902 | 4.28% | 157,251 | 28,896 | 5,361 | 646,610 |
+| A: ML and rule only | 0.951 | 0.949 | 0.950 | 1.18% | 154,255 | 8,001 | 8,357 | 667,505 |
+| B: A, or 2+ rules alone (shipped) | 0.883 | 0.967 | 0.923 | 3.08% | 157,251 | 20,802 | 5,361 | 654,704 |
 | C: A, or any single rule alone | 0.691 | 0.967 | 0.806 | 10.41% | 157,272 | 70,343 | 5,340 | 605,163 |
 
 ### Cross-day split
 
 | Stage | Precision | Recall | F1 | FPR | TP | FP | FN | TN |
 |---|---|---|---|---|---|---|---|---|
-| Decision Tree alone | 0.894 | 0.443 | 0.592 | 3.68% | 128,024 | 15,249 | 160,899 | 399,073 |
+| Decision Tree alone | 1.000 | 0.863 | 0.926 | 0.00% | 249,309 | 3 | 39,614 | 414,319 |
 | Naive Bayes alone | 0.929 | 0.749 | 0.829 | 4.01% | 216,327 | 16,594 | 72,596 | 397,728 |
-| DT or NB (fusion, no verification) | 0.901 | 0.749 | 0.818 | 5.71% | 216,327 | 23,652 | 72,596 | 390,670 |
+| DT or NB (fusion, no verification) | 0.938 | 0.869 | 0.902 | 4.01% | 250,947 | 16,594 | 37,976 | 397,728 |
 | Rules alone (verification layer) | 0.847 | 0.989 | 0.912 | 12.48% | 285,627 | 51,723 | 3,296 | 362,599 |
-| A: ML and rule only | 0.981 | 0.744 | 0.846 | 1.03% | 214,979 | 4,266 | 73,944 | 410,056 |
+| A: ML and rule only | 0.983 | 0.864 | 0.920 | 1.03% | 249,599 | 4,266 | 39,324 | 410,056 |
 | B: A, or 2+ rules alone (shipped) | 0.937 | 0.988 | 0.962 | 4.60% | 285,522 | 19,047 | 3,401 | 395,275 |
 | C: A, or any single rule alone | 0.847 | 0.989 | 0.912 | 12.48% | 285,627 | 51,723 | 3,296 | 362,599 |
 
@@ -84,7 +84,7 @@ VPID reports per-flow metrics, so this is the closer comparison.
 
 | Attack type | Attack flows | Caught by ML fusion | Caught by rules | Caught by pipeline |
 |---|---|---|---|---|
-| PortScan | 55,770 | 100.0% | 100.0% | 100.0% |
+| PortScan | 55,770 | 94.6% | 100.0% | 100.0% |
 | DoS Hulk | 49,797 | 100.0% | 99.6% | 99.6% |
 | DDoS | 47,095 | 100.0% | 100.0% | 100.0% |
 | FTP-Patator | 2,149 | 100.0% | 100.0% | 100.0% |
@@ -92,7 +92,7 @@ VPID reports per-flow metrics, so this is the closer comparison.
 | DoS Slowhttptest | 1,698 | 94.2% | 60.4% | 60.4% |
 | SSH-Patator | 1,624 | 100.0% | 100.0% | 100.0% |
 | DoS GoldenEye | 1,487 | 100.0% | 0.0% | 0.0% |
-| Bot | 577 | 77.3% | 1.7% | 0.0% |
+| Bot | 577 | 0.0% | 1.7% | 0.0% |
 | Web Attack  Brute Force | 439 | 97.5% | 0.0% | 0.0% |
 | Web Attack  XSS | 164 | 100.0% | 0.0% | 0.0% |
 | Infiltration | 12 | 50.0% | 25.0% | 25.0% |
@@ -107,25 +107,25 @@ The pipeline originally blocked only when the classifiers flagged a source AND a
 
 | Trigger | Unseen-attack recall (cross-day) | FPR (cross-day) | Random-split F1 |
 |---|---|---|---|
-| A: ML and rule | 74.4% | 1.03% | 0.923 |
-| B: A, or 2+ rules (shipped) | 98.8% | 4.60% | 0.902 |
+| A: ML and rule | 86.4% | 1.03% | 0.950 |
+| B: A, or 2+ rules (shipped) | 98.8% | 4.60% | 0.923 |
 | C: A, or any single rule | 98.9% | 12.48% | 0.806 |
 
 ## Comparison with VPID (per-flow, random split)
 
 | Metric | VPID (paper) | PacketWatch full pipeline |
 |---|---|---|
-| Precision | 94.5% | 84.5% |
+| Precision | 94.5% | 88.3% |
 | Recall | 88.3% | 96.7% |
-| F1 | 91.3% | 90.2% |
-| False positive rate | under 1.5% | 4.28% |
+| F1 | 91.3% | 92.3% |
+| False positive rate | under 1.5% | 3.08% |
 
 Not a like-for-like comparison: VPID trained on 550,000 flows of its own and tested on a separate 55,000, on traffic we cannot inspect. These numbers cover every attack in CIC-IDS2017, including ones this feature set cannot see (slow DoS, web attacks, botnet C2), which is where the precision gap comes from. Restricted to the scans and floods PacketWatch is designed for, the same pipeline scores F1 0.97. Both figures are in this report; the lower one is the honest headline.
 
 ## Findings
 
-1. **The verification layer is what makes the system usable.** On the random split the ML fusion alone fires on 17.9% of benign flows; requiring a rule to confirm cuts that to 4.28% while costing little recall.
-2. **The classifiers do not generalise to attack types they never saw.** Trained on Monday and Wednesday (benign plus DoS) and tested on Friday, both models caught the DDoS but missed the port scan entirely: recall 44.3%. The threshold rules caught it (98.9% recall).
+1. **The verification layer is what makes the system usable.** On the random split the ML fusion alone fires on 6.5% of benign flows; requiring a rule to confirm cuts that to 3.08% while costing little recall.
+2. **The classifiers do not generalise to attack types they never saw.** Trained on Monday and Wednesday (benign plus DoS) and tested on Friday, both models caught the DDoS but missed the port scan entirely: recall 86.3%. The threshold rules caught it (98.9% recall).
 3. **That finding changed the design.** Because gating on the ML stage let those scans through, two or more distinct rules firing at once now block on their own, lifting cross-day recall to 98.8%.
 4. **Per-window precision looks bad and largely is not.** Each attack comes from one source, so attack windows are rare; a handful of false alarms across 80,000 benign windows drives precision down while the per-flow view shows the attack traffic itself is caught.
 

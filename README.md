@@ -128,12 +128,14 @@ Per-flow, random 70/30 split:
 
 | Metric | VPID (paper) | PacketWatch |
 |---|---|---|
-| Precision | 94.5% | 84.5% |
+| Precision | 94.5% | 88.3% |
 | Recall | 88.3% | 96.7% |
-| F1 | 91.3% | 90.2% |
-| False positive rate | under 1.5% | 4.28% |
+| F1 | 91.3% | 92.3% |
+| False positive rate | under 1.5% | 3.08% |
 
-Not like-for-like: VPID used its own 550,000 flows and a separate 55,000-flow test set. Our figure covers every attack type in CIC-IDS2017, including ones this feature set cannot see. On the scans and floods PacketWatch is built for, the same pipeline scores F1 0.97.
+Not like-for-like: VPID used its own 550,000 flows and a separate 55,000-flow test set. Our figure covers every attack type in CIC-IDS2017, including ones this feature set cannot see. On the scans and floods PacketWatch is built for, the same pipeline scores F1 0.98 with a 1.0% false positive rate.
+
+**Lightweight model comparison.** Following the protocol of Ismail, Dandan and Qushou (*IEEE Access*, 2025), [MODEL_COMPARISON.md](MODEL_COMPARISON.md) and [TON_IOT_EVALUATION.md](TON_IOT_EVALUATION.md) compare Decision Tree, Random Forest, Bagging, Stacking and LightGBM on UNSW-NB15, CIC-IDS2017 and TON_IoT, on F1, model size, training time and prediction cost, with Mutual Information feature ranking. On UNSW-NB15 the Decision Tree reaches 88% of Random Forest's F1 (0.733 vs 0.829) at 9 KB instead of 79 MB and 0.06 us per prediction instead of 3.5 us; on TON_IoT it scores 0.994 against the ensembles' 0.998. Trained on one dataset and tested on another, every model collapses (F1 0.05-0.22), so results do not transfer between capture environments.
 
 **A second dataset, UNSW-NB15.** CIC-IDS2017's attack captures timestamp flows to the minute, so windows there had to be widened to 60s. UNSW-NB15 records flow start and end in seconds, so windows can be built at the live system's real 10s with a true peak-1-second rate. Results are in [UNSW_EVALUATION.md](UNSW_EVALUATION.md), and they are unflattering: its attacks are low-volume exploits and fuzzing, *quieter* than its machine-generated benign traffic, so the rule layer is inverted and the pipeline blocks about 10% of attack windows. Models trained on it reach 98.5% recall but flag a quarter of benign windows, so they are **not** shipped. The synthetic models remain the default, and that report is the honest account of where they fail.
 
