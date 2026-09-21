@@ -59,9 +59,9 @@ box(xs[1], Y, W, H, "features", "2. Features",
 box(xs[2], Y, W, H, "detect", "3. Detection",
     ["Decision Tree", "Multinomial Naive Bayes", "OR fusion: flag if", "either model agrees"])
 box(xs[3], Y, W, H, "verify", "4. Verification",
-    ["Port-scan rule", "Packet-flood rule", "Suspicious-port rule", "(replaces Snort)"])
+    ["Port-scan rule", "Packet-flood rule", "Suspicious-port rule", "must confirm the flag"])
 box(xs[4], Y, W + 5, H, "respond", "5. Response",
-    ["Windows Firewall block", "(netsh, replaces iptables)", "Explainable alert", "auto-expires in 30 min"])
+    ["Windows Firewall block", "via netsh", "Explainable alert", "auto-expires in 30 min"])
 
 for a, b in zip(xs[:-1], xs[1:]):
     arrow(a + W + 0.8, Y + H / 2, b - 0.8, Y + H / 2)
