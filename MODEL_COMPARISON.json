@@ -1,0 +1,582 @@
+[
+  {
+    "dataset": "UNSW-NB15",
+    "n": 802356,
+    "attack_share": 0.06374726430661701,
+    "classes": {
+      "Benign": 751208,
+      "exploits": 22612,
+      "reconnaissance": 12655,
+      "generic": 5808,
+      "fuzzers": 4607,
+      "dos": 3324,
+      "shellcode": 1559,
+      "backdoor": 281,
+      "worms": 189,
+      "analysis": 113
+    },
+    "binary": [
+      {
+        "model": "Decision Tree",
+        "precision": 0.8254551391950363,
+        "recall": 0.6589546402502607,
+        "f1": 0.7328670314934947,
+        "micro_f1": 0.9693777081680217,
+        "fpr": 0.009486916663338703,
+        "train_s": 0.8267508000008092,
+        "size_kb": 8.9755859375,
+        "predict_us": 0.060853236506180686
+      },
+      {
+        "model": "Multinomial NB",
+        "precision": 0.1854073997448364,
+        "recall": 0.3504301355578728,
+        "f1": 0.24250761077911828,
+        "micro_f1": 0.8604485951800321,
+        "fpr": 0.10482643557283139,
+        "train_s": 0.10206379999999626,
+        "size_kb": 0.888671875,
+        "predict_us": 0.06323289310343257
+      },
+      {
+        "model": "Random Forest",
+        "precision": 0.8821843304424518,
+        "recall": 0.7822601668404588,
+        "f1": 0.8292227979274611,
+        "micro_f1": 0.9794605059262921,
+        "fpr": 0.0071129688546922075,
+        "train_s": 32.23407279999992,
+        "size_kb": 78719.919921875,
+        "predict_us": 3.7244658443655827
+      },
+      {
+        "model": "Bagging",
+        "precision": 0.8785855769936175,
+        "recall": 0.7805005213764338,
+        "f1": 0.8266436583261432,
+        "micro_f1": 0.9791323060816678,
+        "fpr": 0.007343707707121399,
+        "train_s": 48.826876000000084,
+        "size_kb": 33944.734375,
+        "predict_us": 5.476873958793549
+      },
+      {
+        "model": "Stacking",
+        "precision": 0.886453440691866,
+        "recall": 0.774895724713243,
+        "f1": 0.826929095524568,
+        "micro_f1": 0.9793234097886643,
+        "fpr": 0.006757986004801143,
+        "train_s": 49.97448659999918,
+        "size_kb": 39277.8232421875,
+        "predict_us": 2.106426069870284
+      },
+      {
+        "model": "LightGBM",
+        "precision": 0.845443304967634,
+        "recall": 0.7575599582898853,
+        "f1": 0.7990925652218747,
+        "micro_f1": 0.9757173659262091,
+        "fpr": 0.009429231950231404,
+        "train_s": 4.631874600000629,
+        "size_kb": 678.4384765625,
+        "predict_us": 5.734255754920703
+      },
+      {
+        "model": "Decision Tree, class-balanced (as shipped)",
+        "precision": 0.2827383213064945,
+        "recall": 0.9703467153284672,
+        "f1": 0.43788600670548794,
+        "micro_f1": 0.841192819485931,
+        "fpr": 0.16760071529044254,
+        "train_s": 0.9319165000006251,
+        "size_kb": 9.2978515625,
+        "predict_us": 0.06448586870924204
+      },
+      {
+        "model": "PacketWatch (DT or NB + rule verification)",
+        "precision": 0.12549582243227275,
+        "recall": 0.09691084462982273,
+        "f1": 0.1093663810539477,
+        "micro_f1": 0.899383898266357,
+        "fpr": 0.04597915363214015,
+        "train_s": 1.0339803000006214,
+        "size_kb": 10.1865234375,
+        "predict_us": 0.1277187618126746
+      }
+    ],
+    "multi": [
+      {
+        "model": "Decision Tree",
+        "micro_f1": 0.951193775004466,
+        "macro_f1": 0.24923473609623628,
+        "weighted_f1": 0.9420404462090731,
+        "train_s": 2.751217999999426,
+        "size_kb": 16.5341796875
+      },
+      {
+        "model": "Multinomial NB",
+        "micro_f1": 0.6105846527105568,
+        "macro_f1": 0.11393088132481725,
+        "weighted_f1": 0.7230082555554729,
+        "train_s": 3.3245852000000014,
+        "size_kb": 2.798828125
+      },
+      {
+        "model": "Random Forest",
+        "micro_f1": 0.9626724607094933,
+        "macro_f1": 0.365266587114222,
+        "weighted_f1": 0.9595560905925261,
+        "train_s": 36.26632130000053,
+        "size_kb": 186838.634765625
+      },
+      {
+        "model": "Bagging",
+        "micro_f1": 0.9621406938726336,
+        "macro_f1": 0.3601050277540945,
+        "weighted_f1": 0.9589925609827741,
+        "train_s": 44.52100710000013,
+        "size_kb": 82804.51171875
+      },
+      {
+        "model": "Stacking",
+        "micro_f1": 0.9627264682788619,
+        "macro_f1": 0.36180254194480627,
+        "weighted_f1": 0.9590777816851117,
+        "train_s": 65.96791260000009,
+        "size_kb": 93358.927734375
+      },
+      {
+        "model": "LightGBM",
+        "micro_f1": 0.9121670744930559,
+        "macro_f1": 0.1715357605913685,
+        "weighted_f1": 0.9177605792433678,
+        "train_s": 43.71048549999978,
+        "size_kb": 6197.8310546875
+      }
+    ],
+    "mi": [
+      {
+        "feature": "pkts_per_sec",
+        "mi": 0.10488755425370537
+      },
+      {
+        "feature": "tcp_count",
+        "mi": 0.08427500124490743
+      },
+      {
+        "feature": "pkt_count",
+        "mi": 0.08055112446225746
+      },
+      {
+        "feature": "unique_dst_ports",
+        "mi": 0.03054997565740688
+      },
+      {
+        "feature": "avg_len_bucket",
+        "mi": 0.015216138070732226
+      },
+      {
+        "feature": "udp_count",
+        "mi": 0.014370009821536852
+      },
+      {
+        "feature": "suspicious_port_hits",
+        "mi": 0.012145353356568913
+      },
+      {
+        "feature": "icmp_count",
+        "mi": 6.871130201577159e-05
+      },
+      {
+        "feature": "syn_only_count",
+        "mi": 0.0
+      },
+      {
+        "feature": "unique_dst_ips",
+        "mi": 0.0
+      }
+    ],
+    "subsets": [
+      {
+        "k": 2,
+        "features": [
+          "pkts_per_sec",
+          "tcp_count"
+        ],
+        "precision": 0.24008766014834795,
+        "recall": 0.9281803962460897,
+        "f1": 0.3814957677059895
+      },
+      {
+        "k": 3,
+        "features": [
+          "pkts_per_sec",
+          "tcp_count",
+          "pkt_count"
+        ],
+        "precision": 0.26047446130025254,
+        "recall": 0.9209462982273201,
+        "f1": 0.40609239169480565
+      },
+      {
+        "k": 5,
+        "features": [
+          "pkts_per_sec",
+          "tcp_count",
+          "pkt_count",
+          "unique_dst_ports",
+          "avg_len_bucket"
+        ],
+        "precision": 0.3300235111506768,
+        "recall": 0.9422575599582899,
+        "f1": 0.4888340405389414
+      },
+      {
+        "k": 7,
+        "features": [
+          "pkts_per_sec",
+          "tcp_count",
+          "pkt_count",
+          "unique_dst_ports",
+          "avg_len_bucket",
+          "udp_count",
+          "suspicious_port_hits"
+        ],
+        "precision": 0.28259879284819495,
+        "recall": 0.9703467153284672,
+        "f1": 0.43771865353520506
+      },
+      {
+        "k": 10,
+        "features": [
+          "pkts_per_sec",
+          "tcp_count",
+          "pkt_count",
+          "unique_dst_ports",
+          "avg_len_bucket",
+          "udp_count",
+          "suspicious_port_hits",
+          "icmp_count",
+          "syn_only_count",
+          "unique_dst_ips"
+        ],
+        "precision": 0.2827383213064945,
+        "recall": 0.9703467153284672,
+        "f1": 0.43788600670548794
+      }
+    ],
+    "imbalance": [
+      {
+        "model": "Decision Tree, unweighted",
+        "precision": 0.8254551391950363,
+        "recall": 0.6589546402502607,
+        "f1": 0.7328670314934947,
+        "micro_f1": 0.9693777081680217,
+        "fpr": 0.009486916663338703,
+        "train_s": null,
+        "size_kb": null,
+        "predict_us": null
+      },
+      {
+        "model": "Decision Tree, class-balanced",
+        "precision": 0.2827383213064945,
+        "recall": 0.9703467153284672,
+        "f1": 0.43788600670548794,
+        "micro_f1": 0.841192819485931,
+        "fpr": 0.16760071529044254,
+        "train_s": null,
+        "size_kb": null,
+        "predict_us": null
+      }
+    ]
+  },
+  {
+    "dataset": "CIC-IDS2017",
+    "n": 513709,
+    "attack_share": 0.0021880091647216615,
+    "classes": {
+      "Benign": 512585,
+      "Bot": 766,
+      "Other": 187,
+      "FTP-Patator": 64,
+      "SSH-Patator": 63,
+      "Web Attack \u0096 Brute Force": 44
+    },
+    "binary": [
+      {
+        "model": "Decision Tree",
+        "precision": 0.9682539682539683,
+        "recall": 0.18100890207715134,
+        "f1": 0.305,
+        "micro_f1": 0.9981961288145711,
+        "fpr": 1.3005930704401207e-05,
+        "train_s": 0.34652640000058454,
+        "size_kb": 4.4443359375,
+        "predict_us": 0.05535678365943667
+      },
+      {
+        "model": "Multinomial NB",
+        "precision": 0.02391954335417233,
+        "recall": 0.26112759643916916,
+        "f1": 0.043824701195219126,
+        "micro_f1": 0.9750832181581047,
+        "fpr": 0.023352148579752367,
+        "train_s": 0.05904610000015964,
+        "size_kb": 0.888671875,
+        "predict_us": 0.058993076508274504
+      },
+      {
+        "model": "Random Forest",
+        "precision": 0.9178082191780822,
+        "recall": 0.19881305637982197,
+        "f1": 0.32682926829268294,
+        "micro_f1": 0.9982091063051137,
+        "fpr": 3.901779211320362e-05,
+        "train_s": 14.446230999999898,
+        "size_kb": 4380.9453125,
+        "predict_us": 2.8369255027142155
+      },
+      {
+        "model": "Bagging",
+        "precision": 0.8860759493670886,
+        "recall": 0.20771513353115728,
+        "f1": 0.33653846153846156,
+        "micro_f1": 0.9982091063051137,
+        "fpr": 5.852668816980543e-05,
+        "train_s": 16.30689910000001,
+        "size_kb": 1981.8876953125,
+        "predict_us": 4.590758080108898
+      },
+      {
+        "model": "Stacking",
+        "precision": 0.9852941176470589,
+        "recall": 0.19881305637982197,
+        "f1": 0.3308641975308642,
+        "micro_f1": 0.9982415500314704,
+        "fpr": 6.502965352200604e-06,
+        "train_s": 21.8240937999999,
+        "size_kb": 2149.1953125,
+        "predict_us": 1.6379513733379525
+      },
+      {
+        "model": "LightGBM",
+        "precision": 0.8452380952380952,
+        "recall": 0.21068249258160238,
+        "f1": 0.33729216152019004,
+        "micro_f1": 0.9981896400692998,
+        "fpr": 8.453854957860785e-05,
+        "train_s": 2.4856994000001578,
+        "size_kb": 689.578125,
+        "predict_us": 6.602877758531136
+      },
+      {
+        "model": "Decision Tree, class-balanced (as shipped)",
+        "precision": 0.008918757654743585,
+        "recall": 0.8427299703264095,
+        "f1": 0.01765071472964574,
+        "micro_f1": 0.7948777844828145,
+        "fpr": 0.20522708355009883,
+        "train_s": 0.35663149999982124,
+        "size_kb": 8.5166015625,
+        "predict_us": 0.07171815485850738
+      },
+      {
+        "model": "PacketWatch (DT or NB + rule verification)",
+        "precision": 0.03389830508474576,
+        "recall": 0.1661721068249258,
+        "f1": 0.0563097033685269,
+        "micro_f1": 0.9878206251257194,
+        "fpr": 0.010378732702112163,
+        "train_s": 0.4156775999999809,
+        "size_kb": 9.4052734375,
+        "predict_us": 0.1307112313667819
+      }
+    ],
+    "multi": [
+      {
+        "model": "Decision Tree",
+        "micro_f1": 0.9982026175598424,
+        "macro_f1": 0.6667206526279293,
+        "weighted_f1": 0.9974207345378296,
+        "train_s": 1.3164083000001483,
+        "size_kb": 6.5400390625
+      },
+      {
+        "model": "Multinomial NB",
+        "micro_f1": 0.9227514875448535,
+        "macro_f1": 0.3812001315509876,
+        "weighted_f1": 0.9580282067812459,
+        "train_s": 1.690576100000726,
+        "size_kb": 2.126953125
+      },
+      {
+        "model": "Random Forest",
+        "micro_f1": 0.9981896400692998,
+        "macro_f1": 0.6676022035538294,
+        "weighted_f1": 0.9974035946579115,
+        "train_s": 15.92573590000029,
+        "size_kb": 6180.5107421875
+      },
+      {
+        "model": "Bagging",
+        "micro_f1": 0.9981896400692998,
+        "macro_f1": 0.6809180893947583,
+        "weighted_f1": 0.997415112101773,
+        "train_s": 19.3934818000007,
+        "size_kb": 2783.6162109375
+      },
+      {
+        "model": "Stacking",
+        "micro_f1": 0.9981896400692998,
+        "macro_f1": 0.5712765074571629,
+        "weighted_f1": 0.9973686881867997,
+        "train_s": 25.05369470000005,
+        "size_kb": 3046.7236328125
+      },
+      {
+        "model": "LightGBM",
+        "micro_f1": 0.7714209703269679,
+        "macro_f1": 0.14521633552466037,
+        "weighted_f1": 0.869392739547222,
+        "train_s": 11.15250019999985,
+        "size_kb": 1564.3740234375
+      }
+    ],
+    "mi": [
+      {
+        "feature": "tcp_count",
+        "mi": 0.005260149536787058
+      },
+      {
+        "feature": "pkt_count",
+        "mi": 0.005069464353211388
+      },
+      {
+        "feature": "pkts_per_sec",
+        "mi": 0.0021771523311375973
+      },
+      {
+        "feature": "suspicious_port_hits",
+        "mi": 0.002125698737437987
+      },
+      {
+        "feature": "avg_len_bucket",
+        "mi": 0.0003843649599538304
+      },
+      {
+        "feature": "unique_dst_ports",
+        "mi": 0.00033987702717018904
+      },
+      {
+        "feature": "udp_count",
+        "mi": 0.00021414068123153872
+      },
+      {
+        "feature": "syn_only_count",
+        "mi": 2.9545790276354084e-07
+      },
+      {
+        "feature": "icmp_count",
+        "mi": 0.0
+      },
+      {
+        "feature": "unique_dst_ips",
+        "mi": 0.0
+      }
+    ],
+    "subsets": [
+      {
+        "k": 2,
+        "features": [
+          "tcp_count",
+          "pkt_count"
+        ],
+        "precision": 0.009806219721831537,
+        "recall": 0.744807121661721,
+        "f1": 0.019357575290170823
+      },
+      {
+        "k": 3,
+        "features": [
+          "tcp_count",
+          "pkt_count",
+          "pkts_per_sec"
+        ],
+        "precision": 0.009806219721831537,
+        "recall": 0.744807121661721,
+        "f1": 0.019357575290170823
+      },
+      {
+        "k": 5,
+        "features": [
+          "tcp_count",
+          "pkt_count",
+          "pkts_per_sec",
+          "suspicious_port_hits",
+          "avg_len_bucket"
+        ],
+        "precision": 0.011249726417159116,
+        "recall": 0.7626112759643917,
+        "f1": 0.02217237511862652
+      },
+      {
+        "k": 7,
+        "features": [
+          "tcp_count",
+          "pkt_count",
+          "pkts_per_sec",
+          "suspicious_port_hits",
+          "avg_len_bucket",
+          "unique_dst_ports",
+          "udp_count"
+        ],
+        "precision": 0.008918757654743585,
+        "recall": 0.8427299703264095,
+        "f1": 0.01765071472964574
+      },
+      {
+        "k": 10,
+        "features": [
+          "tcp_count",
+          "pkt_count",
+          "pkts_per_sec",
+          "suspicious_port_hits",
+          "avg_len_bucket",
+          "unique_dst_ports",
+          "udp_count",
+          "syn_only_count",
+          "icmp_count",
+          "unique_dst_ips"
+        ],
+        "precision": 0.008918757654743585,
+        "recall": 0.8427299703264095,
+        "f1": 0.01765071472964574
+      }
+    ],
+    "imbalance": [
+      {
+        "model": "Decision Tree, unweighted",
+        "precision": 0.9682539682539683,
+        "recall": 0.18100890207715134,
+        "f1": 0.305,
+        "micro_f1": 0.9981961288145711,
+        "fpr": 1.3005930704401207e-05,
+        "train_s": null,
+        "size_kb": null,
+        "predict_us": null
+      },
+      {
+        "model": "Decision Tree, class-balanced",
+        "precision": 0.008918757654743585,
+        "recall": 0.8427299703264095,
+        "f1": 0.01765071472964574,
+        "micro_f1": 0.7948777844828145,
+        "fpr": 0.20522708355009883,
+        "train_s": null,
+        "size_kb": null,
+        "predict_us": null
+      }
+    ]
+  }
+]
