@@ -1,0 +1,368 @@
+{
+  "window": 60,
+  "scope": "pair",
+  "files": [
+    {
+      "file": "Friday-WorkingHours-Afternoon-DDos",
+      "flows": 225745,
+      "attack_flows": 128027,
+      "windows": 14741,
+      "attack_windows": 22,
+      "labels": {
+        "DDoS": 128027
+      }
+    },
+    {
+      "file": "Friday-WorkingHours-Afternoon-PortScan",
+      "flows": 286467,
+      "attack_flows": 158930,
+      "windows": 30613,
+      "attack_windows": 27,
+      "labels": {
+        "PortScan": 158930
+      }
+    },
+    {
+      "file": "Monday-WorkingHours",
+      "flows": 529918,
+      "attack_flows": 0,
+      "windows": 123025,
+      "attack_windows": 0,
+      "labels": {}
+    },
+    {
+      "file": "Wednesday-workingHours",
+      "flows": 692703,
+      "attack_flows": 252672,
+      "windows": 101481,
+      "attack_windows": 86,
+      "labels": {
+        "DoS Hulk": 231073,
+        "DoS GoldenEye": 10293,
+        "DoS slowloris": 5796,
+        "DoS Slowhttptest": 5499,
+        "Heartbleed": 11
+      }
+    }
+  ],
+  "random_split": {
+    "per_window": [
+      {
+        "stage": "Decision Tree alone",
+        "precision": 0.8275862068965517,
+        "recall": 0.6,
+        "f1": 0.6956521739130435,
+        "fpr": 6.179094886181073e-05,
+        "tp": 24,
+        "fp": 5,
+        "fn": 16,
+        "tn": 80913
+      },
+      {
+        "stage": "Naive Bayes alone",
+        "precision": 0.017055144968732235,
+        "recall": 0.75,
+        "f1": 0.033351862145636464,
+        "fpr": 0.021367310116414146,
+        "tp": 30,
+        "fp": 1729,
+        "fn": 10,
+        "tn": 79189
+      },
+      {
+        "stage": "DT or NB (fusion, no verification)",
+        "precision": 0.01871809415768576,
+        "recall": 0.825,
+        "f1": 0.036605657237936774,
+        "fpr": 0.02137966830618651,
+        "tp": 33,
+        "fp": 1730,
+        "fn": 7,
+        "tn": 79188
+      },
+      {
+        "stage": "Rules alone (verification layer)",
+        "precision": 0.012589928057553957,
+        "recall": 0.525,
+        "f1": 0.02459016393442623,
+        "fpr": 0.020353938555080452,
+        "tp": 21,
+        "fp": 1647,
+        "fn": 19,
+        "tn": 79271
+      },
+      {
+        "stage": "A: ML and rule only",
+        "precision": 0.43902439024390244,
+        "recall": 0.45,
+        "f1": 0.4444444444444444,
+        "fpr": 0.00028423836476432934,
+        "tp": 18,
+        "fp": 23,
+        "fn": 22,
+        "tn": 80895
+      },
+      {
+        "stage": "B: A, or 2+ rules alone (shipped)",
+        "precision": 0.4318181818181818,
+        "recall": 0.475,
+        "f1": 0.4523809523809524,
+        "fpr": 0.0003089547443090536,
+        "tp": 19,
+        "fp": 25,
+        "fn": 21,
+        "tn": 80893
+      },
+      {
+        "stage": "C: A, or any single rule alone",
+        "precision": 0.012589928057553957,
+        "recall": 0.525,
+        "f1": 0.02459016393442623,
+        "fpr": 0.020353938555080452,
+        "tp": 21,
+        "fp": 1647,
+        "fn": 19,
+        "tn": 79271
+      }
+    ],
+    "per_flow": [
+      {
+        "stage": "Decision Tree alone",
+        "precision": 0.9992140330820621,
+        "recall": 0.9866188488447293,
+        "f1": 0.9928764983611214,
+        "fpr": 0.00036473257089489347,
+        "tp": 167814,
+        "fp": 132,
+        "fn": 2276,
+        "tn": 361777
+      },
+      {
+        "stage": "Naive Bayes alone",
+        "precision": 0.8428736742764695,
+        "recall": 0.8821506261391028,
+        "f1": 0.862065003188684,
+        "fpr": 0.07728738439773535,
+        "tp": 150045,
+        "fp": 27971,
+        "fn": 20045,
+        "tn": 333938
+      },
+      {
+        "stage": "DT or NB (fusion, no verification)",
+        "precision": 0.8579445042556216,
+        "recall": 0.9932565112587454,
+        "f1": 0.9206552481430821,
+        "fpr": 0.07729291064880951,
+        "tp": 168943,
+        "fp": 27973,
+        "fn": 1147,
+        "tn": 333936
+      },
+      {
+        "stage": "Rules alone (verification layer)",
+        "precision": 0.8370039424443155,
+        "recall": 0.9835792815568228,
+        "f1": 0.9043912143278031,
+        "fpr": 0.09001986687261163,
+        "tp": 167297,
+        "fp": 32579,
+        "fn": 2793,
+        "tn": 329330
+      },
+      {
+        "stage": "A: ML and rule only",
+        "precision": 0.9995248320371473,
+        "recall": 0.9770004115468282,
+        "f1": 0.9881342779926684,
+        "fpr": 0.00021828691742951958,
+        "tp": 166178,
+        "fp": 79,
+        "fn": 3912,
+        "tn": 361830
+      },
+      {
+        "stage": "B: A, or 2+ rules alone (shipped)",
+        "precision": 0.9787751039288014,
+        "recall": 0.9828032218237404,
+        "f1": 0.9807850269889697,
+        "fpr": 0.010016330071924158,
+        "tp": 167165,
+        "fp": 3625,
+        "fn": 2925,
+        "tn": 358284
+      },
+      {
+        "stage": "C: A, or any single rule alone",
+        "precision": 0.8370039424443155,
+        "recall": 0.9835792815568228,
+        "f1": 0.9043912143278031,
+        "fpr": 0.09001986687261163,
+        "tp": 167297,
+        "fp": 32579,
+        "fn": 2793,
+        "tn": 329330
+      }
+    ]
+  },
+  "cross_day": {
+    "per_window": [
+      {
+        "stage": "Decision Tree alone",
+        "precision": 0.7837837837837838,
+        "recall": 0.5918367346938775,
+        "f1": 0.6744186046511628,
+        "fpr": 0.0001765809513298753,
+        "tp": 29,
+        "fp": 8,
+        "fn": 20,
+        "tn": 45297
+      },
+      {
+        "stage": "Naive Bayes alone",
+        "precision": 0.035058430717863104,
+        "recall": 0.42857142857142855,
+        "f1": 0.06481481481481481,
+        "fpr": 0.01275797373358349,
+        "tp": 21,
+        "fp": 578,
+        "fn": 28,
+        "tn": 44727
+      },
+      {
+        "stage": "DT or NB (fusion, no verification)",
+        "precision": 0.04715447154471545,
+        "recall": 0.5918367346938775,
+        "f1": 0.08734939759036145,
+        "fpr": 0.012934554684913365,
+        "tp": 29,
+        "fp": 586,
+        "fn": 20,
+        "tn": 44719
+      },
+      {
+        "stage": "Rules alone (verification layer)",
+        "precision": 0.041289023162134945,
+        "recall": 0.8367346938775511,
+        "f1": 0.07869481765834933,
+        "fpr": 0.02101313320825516,
+        "tp": 41,
+        "fp": 952,
+        "fn": 8,
+        "tn": 44353
+      },
+      {
+        "stage": "A: ML and rule only",
+        "precision": 0.7567567567567568,
+        "recall": 0.5714285714285714,
+        "f1": 0.6511627906976745,
+        "fpr": 0.0001986535702461097,
+        "tp": 28,
+        "fp": 9,
+        "fn": 21,
+        "tn": 45296
+      },
+      {
+        "stage": "B: A, or 2+ rules alone (shipped)",
+        "precision": 0.7619047619047619,
+        "recall": 0.6530612244897959,
+        "f1": 0.7032967032967034,
+        "fpr": 0.0002207261891623441,
+        "tp": 32,
+        "fp": 10,
+        "fn": 17,
+        "tn": 45295
+      },
+      {
+        "stage": "C: A, or any single rule alone",
+        "precision": 0.041289023162134945,
+        "recall": 0.8367346938775511,
+        "f1": 0.07869481765834933,
+        "fpr": 0.02101313320825516,
+        "tp": 41,
+        "fp": 952,
+        "fn": 8,
+        "tn": 44353
+      }
+    ],
+    "per_flow": [
+      {
+        "stage": "Decision Tree alone",
+        "precision": 0.9440963140350999,
+        "recall": 0.9534564412089617,
+        "f1": 0.9487532921029407,
+        "fpr": 0.07192293178841758,
+        "tp": 273601,
+        "fp": 16201,
+        "fn": 13356,
+        "tn": 209054
+      },
+      {
+        "stage": "Naive Bayes alone",
+        "precision": 0.9240474351664056,
+        "recall": 0.4461434988517443,
+        "f1": 0.6017522749492367,
+        "fpr": 0.04671594415218308,
+        "tp": 128024,
+        "fp": 10523,
+        "fn": 158933,
+        "tn": 214732
+      },
+      {
+        "stage": "DT or NB (fusion, no verification)",
+        "precision": 0.9110163989011903,
+        "recall": 0.9534564412089617,
+        "f1": 0.9317533995593258,
+        "fpr": 0.11863887594060066,
+        "tp": 273601,
+        "fp": 26724,
+        "fn": 13356,
+        "tn": 198531
+      },
+      {
+        "stage": "Rules alone (verification layer)",
+        "precision": 0.8686987282632169,
+        "recall": 0.995257129116906,
+        "f1": 0.9276814136295718,
+        "fpr": 0.19163614570153825,
+        "tp": 285596,
+        "fp": 43167,
+        "fn": 1361,
+        "tn": 182088
+      },
+      {
+        "stage": "A: ML and rule only",
+        "precision": 0.9429459071922861,
+        "recall": 0.9487588732806658,
+        "f1": 0.9458434589869773,
+        "fpr": 0.07313045215422521,
+        "tp": 272253,
+        "fp": 16473,
+        "fn": 14704,
+        "tn": 208782
+      },
+      {
+        "stage": "B: A, or 2+ rules alone (shipped)",
+        "precision": 0.9402116227708739,
+        "recall": 0.993988646382559,
+        "f1": 0.9663525469782002,
+        "fpr": 0.08052207498168742,
+        "tp": 285232,
+        "fp": 18138,
+        "fn": 1725,
+        "tn": 207117
+      },
+      {
+        "stage": "C: A, or any single rule alone",
+        "precision": 0.8686987282632169,
+        "recall": 0.995257129116906,
+        "f1": 0.9276814136295718,
+        "fpr": 0.19163614570153825,
+        "tp": 285596,
+        "fp": 43167,
+        "fn": 1361,
+        "tn": 182088
+      }
+    ]
+  }
+}

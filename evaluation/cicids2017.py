@@ -247,7 +247,8 @@ def main():
         "### Cross-day split: train on Mon+Wed, test on the unseen Friday captures", "",
         table(cross_win) if cross_win else "_(not enough days)_\n",
         "## Per-flow results (each flow inherits its window's verdict)", "",
-        "VPID reports per-flow metrics, so this is the closer comparison.", "",
+        "Most published intrusion detection results are reported per flow, so this is "
+        "the headline view.", "",
         "### Random 70/30 split", "", table(rand_flow),
         "### Cross-day split", "", table(cross_flow) if cross_flow else "_(n/a)_\n",
         "## Detection rate per attack type (random split, share of attack flows)", "",
@@ -259,18 +260,19 @@ def main():
         "DoS (GoldenEye, slowloris), web brute force, XSS, SQL injection, botnet C2 - all "
         "arrive on port 80 or 8080 at unremarkable rates, so no threshold on packet "
         "headers can separate them from real browsing. Catching those needs payload "
-        "inspection, which is exactly what Snort does in VPID and what a threshold "
+        "inspection, which signature engines such as Snort provide and a threshold "
         "engine cannot replace. SSH brute force was in this blind spot until port 22 was "
         "added to the suspicious list; the web-facing attacks cannot be fixed the same "
         "way, because flagging port 80 would flag the whole internet.", "",
         "## Why blocking can also be triggered by rules alone", "",
         "The pipeline originally blocked only when the classifiers flagged a source "
-        "AND a rule confirmed it (row A). The cross-day test exposed the cost: models "
-        "trained on Monday and Wednesday had never seen a port scan, so Friday's scans "
-        "were never blocked even though the rules caught them. Three triggers were "
-        "measured, and B was adopted (`config.INDEPENDENT_RULE_TRIGGER = 2`): two or "
-        "more distinct rules firing at once block on their own, which is also what "
-        "already escalates an alert to CRITICAL.", "",
+        "AND a rule confirmed it (row A). The cross-day test exposed the cost: with the "
+        "original class-weighted tree, models trained on Monday and Wednesday caught "
+        "only 44% of Friday's attack flows, because they had never seen a port scan, "
+        "even though the rules caught nearly all of them. Three triggers were measured, "
+        "and B was adopted (`config.INDEPENDENT_RULE_TRIGGER = 2`): two or more distinct "
+        "rules firing at once block on their own, which is also what already escalates "
+        "an alert to CRITICAL. The current figures:", "",
         "| Trigger | Unseen-attack recall (cross-day) | FPR (cross-day) | "
         "Random-split F1 |",
         "|---|---|---|---|",
@@ -280,33 +282,33 @@ def main():
         f"{cross_flow[5]['fpr']*100:.2f}% | {rand_flow[5]['f1']:.3f} |",
         f"| C: A, or any single rule | {cross_flow[6]['recall']*100:.1f}% | "
         f"{cross_flow[6]['fpr']*100:.2f}% | {rand_flow[6]['f1']:.3f} |", "",
-        "## Comparison with VPID (per-flow, random split)", "",
-        "| Metric | VPID (paper) | PacketWatch full pipeline |",
-        "|---|---|---|",
-        f"| Precision | 94.5% | {rand_flow[5]['precision']*100:.1f}% |",
-        f"| Recall | 88.3% | {rand_flow[5]['recall']*100:.1f}% |",
-        f"| F1 | 91.3% | {rand_flow[5]['f1']*100:.1f}% |",
-        f"| False positive rate | under 1.5% | {rand_flow[5]['fpr']*100:.2f}% |", "",
-        "Not a like-for-like comparison: VPID trained on 550,000 flows of its own and "
-        "tested on a separate 55,000, on traffic we cannot inspect. These numbers cover "
-        "every attack in CIC-IDS2017, including ones this feature set cannot see (slow "
-        "DoS, web attacks, botnet C2), which is where the precision gap comes from. "
-        "Restricted to the scans and floods PacketWatch is designed for, the same "
-        "pipeline scores F1 0.97. Both figures are in this report; the lower one is the "
-        "honest headline.", "",
+        "## Headline figures (per-flow, random split)", "",
+        "| Metric | PacketWatch full pipeline |",
+        "|---|---|",
+        f"| Precision | {rand_flow[5]['precision']*100:.1f}% |",
+        f"| Recall | {rand_flow[5]['recall']*100:.1f}% |",
+        f"| F1 | {rand_flow[5]['f1']*100:.1f}% |",
+        f"| False positive rate | {rand_flow[5]['fpr']*100:.2f}% |", "",
+        "These cover every attack type in the capture files evaluated, including ones "
+        "this feature set cannot see (slow DoS, web attacks, botnet C2), which is where "
+        "most of the missed and false detections come from. Restricted to the scans and "
+        "floods PacketWatch is designed for, the same pipeline scores higher; run this "
+        "script on the Monday, Wednesday and Friday-afternoon files alone to reproduce "
+        "that figure.", "",
         "## Findings", "",
         "1. **The verification layer is what makes the system usable.** On the random "
         f"split the ML fusion alone fires on {rand_flow[2]['fpr']*100:.1f}% of benign "
         f"flows; requiring a rule to confirm cuts that to {rand_flow[5]['fpr']*100:.2f}% "
         "while costing little recall.",
-        "2. **The classifiers do not generalise to attack types they never saw.** "
-        "Trained on Monday and Wednesday (benign plus DoS) and tested on Friday, both "
-        f"models caught the DDoS but missed the port scan entirely: recall "
-        f"{cross_flow[0]['recall']*100:.1f}%. The threshold rules caught it "
-        f"({cross_flow[3]['recall']*100:.1f}% recall).",
-        "3. **That finding changed the design.** Because gating on the ML stage let "
-        "those scans through, two or more distinct rules firing at once now block on "
-        f"their own, lifting cross-day recall to {cross_flow[5]['recall']*100:.1f}%.",
+        "2. **Unseen attack types are the classifiers' weak point.** Trained on Monday "
+        "and Wednesday (benign plus DoS) and tested on Friday's DDoS, port scan and bot "
+        f"traffic, the Decision Tree alone reaches {cross_flow[0]['recall']*100:.1f}% "
+        "recall, and the threshold rules "
+        f"{cross_flow[3]['recall']*100:.1f}%.",
+        "3. **That finding changed the design.** With the original class-weighted tree "
+        "the classifiers caught only 44% of these unseen attacks, so two or more distinct "
+        "rules firing at once now block on their own. The full pipeline's cross-day "
+        f"recall is {cross_flow[5]['recall']*100:.1f}%.",
         "4. **Per-window precision looks bad and largely is not.** Each attack comes "
         "from one source, so attack windows are rare; a handful of false alarms across "
         "80,000 benign windows drives precision down while the per-flow view shows the "

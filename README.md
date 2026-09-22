@@ -122,7 +122,7 @@ The ensembles gain up to 0.10 F1, at up to 8,700 times the model size and up to 
 | F1 | 92.3% |
 | False positive rate | 3.08% |
 
-On the scans and floods PacketWatch is built for, F1 is **0.98** with a **1.0%** false positive rate. Trained on some days and tested on attacks from other days, recall is 98.8%.
+On the scans and floods PacketWatch is built for, F1 is **0.98** with a **1.0%** false positive rate ([EVALUATION_SCANS_FLOODS.md](EVALUATION_SCANS_FLOODS.md)). Trained on some days and tested on attacks from other days, recall is 98.8%.
 
 Rule verification is what keeps false alarms low: the two models alone flag 6.5% of normal traffic, and requiring a rule to confirm cuts that to 3.1%.
 
@@ -166,6 +166,7 @@ Install the extra packages first with `pip install -r requirements-eval.txt`. Th
 | Dataset | Source | Command |
 |---|---|---|
 | CIC-IDS2017 | [bvsam/cic-ids-2017](https://huggingface.co/datasets/bvsam/cic-ids-2017), `traffic_labels/*.parquet` | `python -m evaluation.cicids2017 --data <dir>` |
+| CIC-IDS2017, scans and floods | the Monday, Wednesday and two Friday-afternoon files only | `python -m evaluation.cicids2017 --data <dir> --out EVALUATION_SCANS_FLOODS.md` |
 | UNSW-NB15 | [rdpahalavan/UNSW-NB15](https://huggingface.co/datasets/rdpahalavan/UNSW-NB15), `Network-Flows/UNSW_Flow.parquet` | `python -m evaluation.unsw_nb15 --data <dir>` |
 | TON_IoT | [codymlewis/TON_IoT_network](https://huggingface.co/datasets/codymlewis/TON_IoT_network), `train_test_network.csv` | `python -m evaluation.ton_iot --data <dir> --unsw <dir>` |
 | Model comparison | CIC-IDS2017 + UNSW-NB15 | `python -m evaluation.model_comparison --cic <dir> --unsw <dir>` |

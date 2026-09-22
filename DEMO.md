@@ -118,6 +118,7 @@ even the ones Windows Firewall drops."*
 | `MODEL_COMPARISON.md` | The base paper's model comparison, repeated on our features |
 | `TON_IOT_EVALUATION.md` | The base paper's own dataset and its cross-dataset test |
 | `EVALUATION.md` | The full pipeline on 2.83 million CIC-IDS2017 flows |
+| `EVALUATION_SCANS_FLOODS.md` | The 0.98 F1 on scans and floods |
 | `UNSW_EVALUATION.md` | A second dataset, where we report where the system fails |
 | `BENCHMARK.md` | Speed and memory, measured rather than claimed |
 | `docs/architecture.png` | The five-stage pipeline |
