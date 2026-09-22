@@ -89,7 +89,7 @@ detection = entity("DETECTION", C1, R1, [
 window = entity("TRAFFIC_WINDOW", C2, R1, [
     ("PK", "window_id"), ("FK", "source_ip"), ("", "window_start"), ("", "pkt_count"),
     ("", "pkts_per_sec"), ("", "unique_dst_ports"), ("", "suspicious_port_hits"),
-    ("", "+ 5 more features")])
+    ("", "+ 6 more features")])
 host = entity("SOURCE_HOST", C3, R1, [
     ("PK", "source_ip"), ("", "first_seen"), ("", "last_seen"), ("", "is_protected")])
 
