@@ -30,6 +30,10 @@ def parse_args(argv=None):
                         "quiet traffic, then exit")
     p.add_argument("--simulate", action="store_true",
                    help="replay crafted attack/benign traffic offline (no admin needed)")
+    p.add_argument("--dashboard", nargs="?", type=int, const=config.DASHBOARD_PORT,
+                   metavar="PORT",
+                   help=f"serve the live dashboard on 127.0.0.1:{config.DASHBOARD_PORT} "
+                        "(or PORT); works with --simulate too")
     p.add_argument("--list-ifaces", action="store_true", help="list interfaces and exit")
     p.add_argument("--unblock-all", action="store_true",
                    help=f"delete every {config.RULE_PREFIX}* firewall rule and exit")
@@ -55,7 +59,28 @@ def main(argv=None):
     if args.simulate:
         from .riskmap import RiskMap
         from .simulate import run
-        run(RiskMap.from_json(args.risk_map) if args.risk_map else None)
+        risk = RiskMap.from_json(args.risk_map) if args.risk_map else None
+        if args.dashboard is None:
+            run(risk)
+            return
+        # The simulation is over in a second, so the dashboard is attached first
+        # and the process is held open afterwards for the results to be browsed.
+        # This is the demo path that needs neither Administrator nor Npcap.
+        from .dashboard import attach
+        held = {}
+        run(risk, on_ready=lambda pipeline, blocker: held.setdefault(
+            "dash", attach(pipeline, blocker, iface="simulation", dry_run=True,
+                           port=args.dashboard)))
+        dash = held.get("dash")
+        if not dash:
+            return
+        print(f"\nDashboard: {dash.url}  (Ctrl+C to stop)")
+        try:
+            threading.Event().wait()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            dash.stop()
         return
     if args.list_ifaces:
         capture.list_ifaces()
@@ -89,6 +114,13 @@ def main(argv=None):
     blocker = FirewallBlocker(dry_run=args.dry_run, whitelist=set(args.whitelist) | own)
     pipeline = Pipeline(Detector(), blocker, Alerter(), own_addresses=own,
                         record_path=args.record, risk_map=risk)
+    dash = None
+    if args.dashboard is not None:
+        from .dashboard import attach
+        dash = attach(pipeline, blocker, iface=args.iface, dry_run=args.dry_run,
+                      port=args.dashboard)
+        if dash:
+            print(f"Dashboard: {dash.url}")
     tuned = ("calibrated" if config.CALIBRATED else "stock")
     print(f"PacketWatch running{' (DRY RUN)' if args.dry_run else ''} - "
           f"protected addresses: {', '.join(sorted(own)) or '-'}. "
@@ -105,6 +137,8 @@ def main(argv=None):
         stop.set()
         pipeline.sweep(force=True)
         pipeline.close()
+        if dash:
+            dash.stop()
     print(f"Stopped. Active blocks: {', '.join(sorted(blocker.blocked)) or 'none'} "
           f"(auto-expire after {config.BLOCK_TTL_MIN} min while running; "
           f"use --unblock-all to clear).")

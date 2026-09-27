@@ -71,3 +71,15 @@ RULE_PREFIX = "PacketWatch_Block_"
 BLOCK_TTL_MIN = 30                # auto-unblock after this many minutes (0 = never)
 # Addresses that must never be blocked (own IPs, loopback, gateway are added at runtime)
 WHITELIST = frozenset({"127.0.0.1", "::1", "0.0.0.0"})
+
+# --- Dashboard (optional, --dashboard) -------------------------------------
+# Loopback on purpose: the dashboard can lift a block, which makes it a control
+# surface rather than a report. Every history it keeps is a fixed-length deque,
+# so leaving it running cannot grow the process - the same guarantee the rest of
+# the system makes.
+DASHBOARD_HOST = "127.0.0.1"
+DASHBOARD_PORT = 8787
+DASHBOARD_ALERTS = 200             # recent alerts kept for the feed
+DASHBOARD_UNVERIFIED = 100         # recent ML-flagged-but-unconfirmed sources
+DASHBOARD_TRAFFIC_SAMPLES = 300    # 1 Hz packets/sec history (5 minutes)
+DASHBOARD_TOP_SOURCES = 25         # rows in the per-source table

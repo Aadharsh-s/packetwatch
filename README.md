@@ -68,6 +68,8 @@ For a step-by-step demo, including triggering a real block from a second device,
 | Command | What it does | Admin? |
 |---|---|---|
 | `python -m packetwatch --simulate` | Offline demo of the whole pipeline | No |
+| `python -m packetwatch --simulate --dashboard` | The same demo, with the dashboard left open to browse | No |
+| `python -m packetwatch --dashboard --iface "Wi-Fi"` | Live detection with the dashboard on http://127.0.0.1:8787 | Yes |
 | `python -m packetwatch --train` | Retrain both models; prints accuracy reports | No |
 | `python -m packetwatch --list-ifaces` | List network adapters | No |
 | `python -m packetwatch --iface "Wi-Fi"` | Live detection and blocking | Yes |
@@ -77,9 +79,19 @@ For a step-by-step demo, including triggering a real block from a second device,
 | `python -m packetwatch --calibrate 300 --iface "Wi-Fi"` | Learn thresholds from 300 s of your normal traffic | Yes |
 | `python -m packetwatch --record rows.csv --iface "Wi-Fi"` | Save live feature rows, to label and retrain on | Yes |
 | `python -m packetwatch --train --csv rows.csv` | Retrain including your labelled rows | No |
-| `python -m unittest discover tests` | Run the 57 tests | No |
+| `python -m unittest discover tests` | Run the 78 tests | No |
 
-Other options: `--whitelist IP ...` never blocks the listed addresses; `--timeout N` stops after N seconds; `-v` gives verbose logging. Alerts are printed and also appended as JSON lines to `alerts.log`.
+Other options: `--whitelist IP ...` never blocks the listed addresses; `--timeout N` stops after N seconds; `--dashboard PORT` moves the dashboard off 8787; `-v` gives verbose logging. Alerts are printed and also appended as JSON lines to `alerts.log`.
+
+## Dashboard
+
+`--dashboard` serves a live view on `http://127.0.0.1:8787`: seven panels showing what the system is seeing and deciding.
+
+The one worth looking at first is the **decision funnel** - windows judged, flagged by the classifiers, ignored because no rule confirmed them, and finally blocked. The distance between "flagged" and "blocked" is the verification layer refusing to act on machine learning alone. Beside it, **Flagged, not verified** lists what was deliberately *not* blocked and which rule it fell short of, and the **source table** shows every live feature against the threshold it would have to cross.
+
+The rest is operational: status, a packets/sec chart, active blocks with their 30-minute expiry counting down and an unblock button, and the alert feed.
+
+It is built to the same rules as the rest of the system. Everything it remembers is a fixed-length buffer, so watching it cannot grow the process; nothing in it runs per packet; and it binds to loopback only, because a page that can lift a block is a control surface rather than a report.
 
 ## Results
 
@@ -220,7 +232,7 @@ evaluation/
   benchmark.py         throughput, latency, CPU and memory
   vuln_priority.py     vulnerability ranking against CISA KEV
 docs/             architecture and ER diagrams (regenerate with python docs/<name>.py)
-tests/            57 tests; no Administrator rights or network needed
+tests/            78 tests; no Administrator rights or network needed
 ```
 
 ## Limitations

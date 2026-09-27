@@ -32,10 +32,14 @@ def packet_length(pkt, ip):
 
 class Pipeline:
     def __init__(self, detector, blocker, alerter, own_addresses=(), record_path=None,
-                 clock=time.time, risk_map=None):
+                 clock=time.time, risk_map=None, observer=None):
         self.detector = detector
         self.blocker = blocker
         self.alerter = alerter
+        # Optional watcher (the dashboard) notified of decisions as they are
+        # made. It is called from the once-a-second sweep, never per packet, and
+        # None costs an attribute lookup.
+        self.observer = observer
         self.own = set(own_addresses)
         self.risk = risk_map or RiskMap()
         self.clock = clock
@@ -155,6 +159,8 @@ class Pipeline:
                 self.stats["unverified"] += 1
                 log.info("ML-flagged, not verified: %s %s (DT=%s NB=%s)", src,
                          dict(zip(FEATURE_NAMES, vec)), ml["dt_proba"], ml["nb_proba"])
+                if self.observer:
+                    self.observer.on_unverified(src, vec, ml)
             return None
 
         trigger = "ml+rule" if (ml["flagged"] and hits) else "rules-only"
@@ -166,8 +172,33 @@ class Pipeline:
             severity = escalate(severity)
             self.stats["risk_escalated"] += 1
         action = self.blocker.block(src)
-        return self.alerter.alert(src, severity, ml, hits, action, trigger=trigger,
-                                  risk=risk)
+        record = self.alerter.alert(src, severity, ml, hits, action, trigger=trigger,
+                                    risk=risk)
+        if self.observer:
+            self.observer.on_alert(record)
+        return record
+
+    def snapshot_sources(self, limit=config.DASHBOARD_TOP_SOURCES):
+        """Current feature vectors for the busiest tracked sources.
+
+        Built on request rather than kept, and the lock is held only long enough
+        to copy the vectors out, so watching the dashboard cannot slow capture.
+        prune() is called for the same reason sweep() calls it: a source that
+        has gone quiet would otherwise report counters that have aged out.
+        """
+        now = self.clock()
+        with self.lock:
+            rows = []
+            for src, win in self.windows.items():
+                win.prune(now)
+                rows.append((src, win.extract(), win.last_seen))
+        rows.sort(key=lambda r: r[1][0], reverse=True)      # by packet count
+        return [{"ip": src,
+                 "features": dict(zip(FEATURE_NAMES, vec)),
+                 "hits": [h.as_dict() for h in verify_vector(vec)],
+                 "blocked": src in self.blocker.blocked,
+                 "idle": round(max(0.0, now - last_seen), 1)}
+                for src, vec, last_seen in rows[:limit]]
 
     def close(self):
         """Flush and close the --record file, if one is open."""

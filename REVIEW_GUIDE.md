@@ -373,7 +373,7 @@ The three rules live in one `RULES` table in `verify.py`. Both the live system a
 
 ### Tests (`tests/`)
 
-57 tests, needing no Administrator rights or network. They cover the decision logic (scan, flood and brute-force blocking; benign traffic allowed; ML-only flags not blocked; two-rule independent blocking), firewall safety (whitelist, invalid IP rejection, dry run, unblock-all parsing), memory bounds (window size identical for 50 and 50,000 packets, source cap, idle eviction, log rotation), calibration, and the vulnerability module.
+78 tests, needing no Administrator rights or network. They cover the decision logic (scan, flood and brute-force blocking; benign traffic allowed; ML-only flags not blocked; two-rule independent blocking), firewall safety (whitelist, invalid IP rejection, dry run, unblock-all parsing), memory bounds (window size identical for 50 and 50,000 packets, source cap, idle eviction, log rotation), calibration, the vulnerability module, and the dashboard (bounded history, a snapshot that cannot disturb detection, and the refusals that stop a web page lifting a block).
 
 ---
 
@@ -432,7 +432,7 @@ packetwatch/
   vuln/           OpenVAS parsing, ranking, exposure checks (optional)
 evaluation/       model_comparison, ton_iot, cicids2017, unsw_nb15, benchmark, vuln_priority
 docs/             architecture and ER diagrams (python docs/architecture.py regenerates)
-tests/            57 tests
+tests/            78 tests
 *.md              README, DEMO (the demo runbook), this guide, and the evaluation reports
 ```
 

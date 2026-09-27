@@ -71,6 +71,25 @@ def verify(window):
     return verify_vector(window.extract())
 
 
+def nearest_rule(vec):
+    """The rule a vector came closest to breaking, as {rule, observed, threshold}.
+
+    Used to explain a non-block: the dashboard shows what a flagged-but-
+    unconfirmed source was short of ("port_scan: 6 of 10 ports"). It lives here
+    so that the explanation is derived from the same thresholds the decision
+    was, rather than from a second copy of them.
+    """
+    best = None
+    for rule in RULES:
+        observed = int(vec[_INDEX[rule.feature]])
+        limit = int(rule.threshold)
+        fraction = observed / limit if limit else 0.0
+        if best is None or fraction > best["fraction"]:
+            best = {"rule": rule.name, "observed": observed, "threshold": limit,
+                    "unit": rule.unit, "fraction": round(fraction, 3)}
+    return best
+
+
 def rule_counts(rows):
     """How many distinct rules fire per row, for a 2-D array of feature vectors.
 

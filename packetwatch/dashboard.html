@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<!--
+  PacketWatch dashboard. One file, no build step, no dependencies: the page is
+  served by packetwatch/dashboard.py and polls /api/status once a second.
+  A bundler here would sit badly beside a project whose whole claim is that it
+  is light enough to run on an ordinary PC.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PacketWatch</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #161b22; --line: #262d36;
+    --ink: #e6edf3; --muted: #8b949e;
+    --blue: #58a6ff; --green: #3fb950; --amber: #d29922; --red: #f85149;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+  h1 { font-size: 18px; margin: 0; letter-spacing: .3px; }
+  h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .8px;
+    color: var(--muted); margin: 0 0 12px; font-weight: 600;
+  }
+  header {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 16px;
+  }
+  .pill {
+    font: 600 12px/1 var(--mono); padding: 5px 9px; border-radius: 5px;
+    background: #1f2630; color: var(--muted); white-space: nowrap;
+  }
+  .pill b { color: var(--ink); font-weight: 700; }
+  .pill.live { background: #12301c; color: var(--green); }
+  .pill.dry { background: #3a2d10; color: var(--amber); }
+  .pill.down { background: #3d1418; color: var(--red); }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+  .grid.wide { grid-template-columns: 1fr; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px; min-width: 0;
+  }
+  .card + .card, .grid + .grid { margin-top: 0; }
+  .stack { display: grid; gap: 14px; margin-bottom: 14px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; color: var(--muted); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .5px;
+    padding: 0 8px 6px 0; border-bottom: 1px solid var(--line);
+  }
+  td { padding: 7px 8px 7px 0; border-bottom: 1px solid #1c222b; vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  .ip { font: 600 13px var(--mono); }
+  .muted { color: var(--muted); }
+  .empty { color: var(--muted); font-style: italic; padding: 10px 0; }
+
+  /* decision funnel */
+  .funnel-row { margin-bottom: 11px; }
+  .funnel-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .funnel-top span:first-child { color: var(--muted); font-size: 12px; }
+  .funnel-top b { font: 700 14px var(--mono); }
+  .bar { height: 7px; background: #1c222b; border-radius: 4px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 4px; }
+  .note {
+    margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 12px;
+  }
+
+  /* threshold meters in the source table */
+  .meter { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+  .meter span { font: 11px var(--mono); color: var(--muted); min-width: 108px; }
+  .meter .bar { flex: 1; height: 5px; }
+
+  .sev { font: 700 11px var(--mono); padding: 2px 6px; border-radius: 4px; }
+  .sev.HIGH { background: #3a2d10; color: var(--amber); }
+  .sev.CRITICAL { background: #3d1418; color: var(--red); }
+  .tag {
+    font: 600 11px var(--mono); color: var(--muted);
+    background: #1f2630; padding: 2px 6px; border-radius: 4px;
+  }
+  .why { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  button {
+    font: 600 12px "Segoe UI", sans-serif; color: var(--ink);
+    background: #21262d; border: 1px solid #333c47; border-radius: 5px;
+    padding: 4px 10px; cursor: pointer;
+  }
+  button:hover { background: #2b323c; border-color: #454f5b; }
+  button.danger { color: var(--red); border-color: #5a2226; }
+  .right { text-align: right; }
+  svg { display: block; width: 100%; height: 110px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PacketWatch</h1>
+  <span class="pill" id="p-mode">connecting</span>
+  <span class="pill">iface <b id="p-iface">-</b></span>
+  <span class="pill">up <b id="p-uptime">-</b></span>
+  <span class="pill">pkts <b id="p-packets">-</b></span>
+  <span class="pill">pps <b id="p-pps">-</b></span>
+  <span class="pill">sources <b id="p-sources">-</b></span>
+  <span class="pill">blocked <b id="p-blocked">-</b></span>
+  <span class="pill" id="p-thresholds">-</span>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <h2>Decision funnel</h2>
+    <div id="funnel"></div>
+    <div class="note" id="funnel-note"></div>
+  </div>
+
+  <div class="card">
+    <h2>Traffic (packets/sec, last 5 min)</h2>
+    <svg id="chart" viewBox="0 0 600 110" preserveAspectRatio="none"></svg>
+    <div class="note" id="chart-note"></div>
+  </div>
+</div>
+
+<div class="stack" style="margin-top:14px">
+  <div class="card">
+    <h2>Active blocks
+      <button class="danger" style="float:right;margin-top:-4px"
+              onclick="unblockAll()">Unblock all</button>
+    </h2>
+    <div id="blocks"></div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Alerts</h2>
+    <div id="alerts"></div>
+  </div>
+
+  <div class="card">
+    <h2>Flagged, not verified
+      <span class="muted" style="text-transform:none;letter-spacing:0">
+        &mdash; suspected, but no rule confirmed</span>
+    </h2>
+    <div id="unverified"></div>
+  </div>
+</div>
+
+<div class="grid wide" style="margin-top:14px">
+  <div class="card">
+    <h2>Sources being watched</h2>
+    <div id="sources"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+var THRESH = {port_scan: 10, flood_pps: 100, suspicious_port: 3};
+var lastBlocks = [];      // kept so the TTL can tick between polls
+var serverSkew = 0;       // server clock minus ours, for the countdown
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c];
+  });
+}
+
+function num(n) { return (n == null ? "-" : Number(n).toLocaleString()); }
+
+function duration(s) {
+  if (s == null) return "-";
+  s = Math.max(0, Math.round(s));
+  var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  if (h) return h + "h " + m + "m";
+  if (m) return m + "m " + (s % 60) + "s";
+  return s + "s";
+}
+
+function bar(fraction, color) {
+  var pct = Math.max(0, Math.min(1, fraction || 0)) * 100;
+  return '<div class="bar"><i style="width:' + pct.toFixed(1) +
+         '%;background:' + color + '"></i></div>';
+}
+
+/* ---- panel 5: the decision funnel ---------------------------------------
+   The whole architecture in one widget: the distance between "ML flagged"
+   and "blocked" is the verification layer refusing to act on its own.      */
+function renderFunnel(f) {
+  var top = Math.max(1, f.judged);
+  var rows = [
+    ["Windows judged", f.judged, "#58a6ff"],
+    ["ML flagged", f.ml_flagged, "#d29922"],
+    ["Not verified (ignored)", f.unverified, "#8b949e"],
+    ["Confirmed and blocked", f.confirmed, "#f85149"]
+  ];
+  document.getElementById("funnel").innerHTML = rows.map(function (r) {
+    return '<div class="funnel-row"><div class="funnel-top">' +
+      "<span>" + r[0] + "</span><b>" + num(r[1]) + "</b></div>" +
+      bar(r[1] / top, r[2]) + "</div>";
+  }).join("");
+
+  var pct = f.ml_flagged ? (100 * f.confirmed / f.ml_flagged).toFixed(0) : "0";
+  document.getElementById("funnel-note").innerHTML =
+    "Of " + num(f.ml_flagged) + " machine-learning flags, <b>" + pct +
+    "%</b> were confirmed by a rule and acted on. " +
+    num(f.rules_only) + " blocked on rules alone." +
+    (f.risk_escalated ? " " + num(f.risk_escalated) + " escalated by the risk map." : "");
+}
+
+/* ---- panel 4: traffic ---------------------------------------------------- */
+function renderChart(traffic) {
+  var svg = document.getElementById("chart");
+  if (!traffic.length) {
+    svg.innerHTML = '<text x="300" y="60" fill="#8b949e" font-size="12" ' +
+                    'text-anchor="middle">waiting for traffic</text>';
+    document.getElementById("chart-note").textContent = "";
+    return;
+  }
+  var peak = Math.max.apply(null, traffic.map(function (p) { return p.pps; })) || 1;
+  var n = traffic.length;
+  var pts = traffic.map(function (p, i) {
+    var x = n > 1 ? (i / (n - 1)) * 600 : 0;
+    return x.toFixed(1) + "," + (105 - (p.pps / peak) * 95).toFixed(1);
+  }).join(" ");
+  svg.innerHTML =
+    '<polyline points="' + pts + '" fill="none" stroke="#58a6ff" stroke-width="2"/>' +
+    '<polyline points="0,110 ' + pts + ' 600,110" fill="#58a6ff" opacity="0.08"/>';
+  document.getElementById("chart-note").textContent =
+    "peak " + peak.toFixed(0) + " pkt/s over " + n + " samples";
+}
+
+/* ---- panel 2: active blocks --------------------------------------------- */
+function renderBlocks() {
+  var el = document.getElementById("blocks");
+  if (!lastBlocks.length) {
+    el.innerHTML = '<div class="empty">No active blocks.</div>';
+    return;
+  }
+  var now = Date.now() / 1000 + serverSkew;
+  el.innerHTML = "<table><tr><th>Source</th><th>Blocked</th><th>Expires in</th>" +
+    "<th>Reason</th><th></th></tr>" + lastBlocks.map(function (b) {
+      var left = b.expires_at == null ? null : b.expires_at - now;
+      return "<tr><td class='ip'>" + esc(b.ip) + "</td>" +
+        "<td class='muted'>" + duration(b.age) + " ago</td>" +
+        "<td>" + (left == null
+          ? '<span class="muted">no expiry</span>'
+          : '<b style="font-family:var(--mono)">' + duration(left) + "</b>") + "</td>" +
+        "<td>" + (b.reason
+          ? '<span class="sev ' + esc(b.reason.severity) + '">' + esc(b.reason.severity) +
+            '</span> <span class="tag">' + esc(b.reason.trigger) + "</span>" +
+            '<div class="why">' + esc((b.reason.explanation || []).join("; ")) + "</div>"
+          : '<span class="muted">-</span>') + "</td>" +
+        "<td class='right'><button onclick=\"unblock('" + esc(b.ip) +
+        "')\">Unblock</button></td></tr>";
+    }).join("") + "</table>";
+}
+
+/* ---- panel 3: alert feed ------------------------------------------------- */
+function renderAlerts(alerts) {
+  var el = document.getElementById("alerts");
+  if (!alerts.length) {
+    el.innerHTML = '<div class="empty">No alerts yet.</div>';
+    return;
+  }
+  el.innerHTML = "<table>" + alerts.map(function (a) {
+    var c = a.classifiers || {};
+    return "<tr><td style='width:1%'><span class='sev " + esc(a.severity) + "'>" +
+      esc(a.severity) + "</span></td>" +
+      "<td><span class='ip'>" + esc(a.src_ip) + "</span> " +
+      "<span class='tag'>" + esc(a.trigger) + "</span> " +
+      "<span class='muted'>" + esc(a.action) + "</span>" +
+      "<div class='why'>" + esc((a.explanation || []).join("; ")) + "</div>" +
+      "<div class='why'>DT " + esc(c.dt_proba) + " / NB " + esc(c.nb_proba) +
+      (a.targets_known_vulnerability
+        ? " &mdash; targets " + esc(a.targets_known_vulnerability.cve || "a known-vulnerable service")
+        : "") + "</div></td>" +
+      "<td class='right muted' style='white-space:nowrap'>" +
+      esc((a.time || "").replace("T", " ").replace("+00:00", "")) + "</td></tr>";
+  }).join("") + "</table>";
+}
+
+/* ---- panel 6: flagged but not verified ----------------------------------
+   The near misses. This is the panel that answers "what did you choose NOT
+   to block, and why" - the verification layer's decisions made visible.    */
+function renderUnverified(rows) {
+  var el = document.getElementById("unverified");
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">Nothing flagged without confirmation.</div>';
+    return;
+  }
+  el.innerHTML = "<table><tr><th>Source</th><th>Closest rule</th><th>Models</th></tr>" +
+    rows.map(function (u) {
+      var c = u.closest || {};
+      return "<tr><td class='ip'>" + esc(u.ip) + "</td>" +
+        "<td>" + esc(c.rule || "-") + "<div class='why'>" +
+        num(c.observed) + " of " + num(c.threshold) + " " + esc(c.unit || "") +
+        "</div>" + bar(c.fraction, "#d29922") + "</td>" +
+        "<td class='right muted' style='font-family:var(--mono);white-space:nowrap'>" +
+        "DT " + esc(u.dt_proba) + "<br>NB " + esc(u.nb_proba) + "</td></tr>";
+    }).join("") + "</table>";
+}
+
+/* ---- panel 8: per-source drill-down -------------------------------------
+   Explainability made literal: every live feature shown against the rule
+   threshold it would have to cross.                                        */
+function renderSources(rows) {
+  var el = document.getElementById("sources");
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">No sources being tracked.</div>';
+    return;
+  }
+  var live = rows.filter(function (s) { return s.features.pkt_count > 0; }).length;
+  el.innerHTML = (live ? "" :
+      '<div class="why" style="margin-bottom:8px">No traffic in the current ' +
+      "window; these sources are still tracked until they are evicted.</div>") +
+    "<table><tr><th>Source</th><th>Packets</th>" +
+    "<th style='width:45%'>Against thresholds</th><th>Protocols</th>" +
+    "<th class='right'>Idle</th></tr>" + rows.map(function (s) {
+      var f = s.features, hit = s.hits.length > 0;
+      function meter(label, value, limit) {
+        var over = value >= limit;
+        return '<div class="meter"><span>' + label + " " + num(value) + "/" + limit +
+          "</span>" + bar(value / limit, over ? "#f85149" : "#3fb950") + "</div>";
+      }
+      // A tracked source with nothing in the current window is still watched,
+      // but its zeroes are real rather than missing data: dim the row so an
+      // aged-out source does not read as a broken table.
+      var quiet = f.pkt_count === 0;
+      return "<tr" + (quiet ? " style='opacity:.45'" : "") + "><td><span class='ip' style='color:" +
+        (s.blocked ? "var(--red)" : hit ? "var(--amber)" : "var(--ink)") + "'>" +
+        esc(s.ip) + "</span>" + (s.blocked ? "<div class='why'>blocked</div>" : "") + "</td>" +
+        "<td><b style='font-family:var(--mono)'>" + num(f.pkt_count) + "</b>" +
+        "<div class='why'>" + num(f.pkts_per_sec) + " peak/s</div></td>" +
+        "<td>" + meter("ports", f.unique_dst_ports, THRESH.port_scan) +
+        meter("pkt/s", f.pkts_per_sec, THRESH.flood_pps) +
+        meter("susp. ports", f.suspicious_port_hits, THRESH.suspicious_port) + "</td>" +
+        "<td class='muted' style='font-family:var(--mono);font-size:12px'>" +
+        "TCP " + num(f.tcp_count) + "<br>UDP " + num(f.udp_count) +
+        "<br>ICMP " + num(f.icmp_count) + "<br>SYN " + num(f.syn_only_count) + "</td>" +
+        "<td class='right muted'>" + s.idle + "s</td></tr>";
+    }).join("") + "</table>";
+}
+
+function renderStatus(st) {
+  var mode = document.getElementById("p-mode");
+  mode.textContent = st.dry_run ? "DRY RUN - not blocking" : "LIVE - blocking";
+  mode.className = "pill " + (st.dry_run ? "dry" : "live");
+  document.getElementById("p-iface").textContent = st.iface;
+  document.getElementById("p-uptime").textContent = duration(st.uptime);
+  document.getElementById("p-packets").textContent = num(st.packets);
+  document.getElementById("p-pps").textContent = st.pps.toFixed(0);
+  document.getElementById("p-sources").textContent = num(st.active_sources);
+  document.getElementById("p-blocked").textContent = num(st.blocked_count);
+  var t = st.thresholds;
+  THRESH = t;
+  document.getElementById("p-thresholds").innerHTML =
+    (t.calibrated ? "calibrated" : "stock") + " <b>" + t.port_scan + "</b> ports / <b>" +
+    t.flood_pps + "</b> pps / <b>" + t.suspicious_port + "</b> susp.";
+}
+
+function offline() {
+  var mode = document.getElementById("p-mode");
+  mode.textContent = "disconnected - is PacketWatch still running?";
+  mode.className = "pill down";
+}
+
+function refresh() {
+  fetch("/api/status", {cache: "no-store"})
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      serverSkew = d.now - Date.now() / 1000;
+      lastBlocks = d.blocks;
+      renderStatus(d.status);
+      renderFunnel(d.funnel);
+      renderChart(d.traffic);
+      renderBlocks();
+      renderAlerts(d.alerts);
+      renderUnverified(d.unverified);
+      renderSources(d.sources);
+    })
+    .catch(offline);
+}
+
+function post(path, body) {
+  return fetch(path, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", "X-PacketWatch-Control": "1"},
+    body: JSON.stringify(body || {})
+  }).then(refresh);
+}
+
+function unblock(ip) { post("/api/unblock", {ip: ip}); }
+
+function unblockAll() {
+  if (lastBlocks.length && confirm("Lift every block PacketWatch has made?")) {
+    post("/api/unblock-all");
+  }
+}
+
+refresh();
+setInterval(refresh, 1000);
+setInterval(renderBlocks, 1000);   // keep the TTL ticking between polls
+</script>
+</body>
+</html>

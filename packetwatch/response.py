@@ -7,6 +7,7 @@ import json
 import logging
 import subprocess
 import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -50,6 +51,9 @@ class FirewallBlocker:
         self.ttl_min = ttl_min
         self.run = runner or subprocess.run
         self.blocked = set()
+        # when each block was made, so the TTL can be shown counting down rather
+        # than expiring invisibly; bounded by `blocked` itself
+        self.block_times = {}
         self._lock = threading.Lock()
         self._timers = set()
 
@@ -87,6 +91,7 @@ class FirewallBlocker:
             if not ok:
                 return "block FAILED"
             self.blocked.add(ip)
+            self.block_times[ip] = time.time()
         if self.ttl_min:
             # timers are held only while alive, so a long run does not collect
             # one dead Timer object per block it ever made
@@ -109,7 +114,30 @@ class FirewallBlocker:
             for d in ("in", "out"):
                 self._netsh(["delete", "rule", f"name={rule_name(ip, d)}"])
             self.blocked.discard(ip)
+            self.block_times.pop(ip, None)
         log.info("unblocked %s", ip)
+
+    def blocks(self):
+        """Current blocks with their age and remaining TTL, newest first.
+
+        expires_at is None when ttl_min is 0, which is how the simulation and
+        --test-block run: the block stands until it is lifted by hand.
+        """
+        now = time.time()
+        with self._lock:
+            rows = [(ip, self.block_times.get(ip)) for ip in self.blocked]
+        out = []
+        for ip, since in rows:
+            expires = (since + self.ttl_min * 60) if (since and self.ttl_min) else None
+            out.append({
+                "ip": ip,
+                "blocked_at": since,
+                "age": round(now - since, 1) if since else None,
+                "expires_at": expires,
+                "remaining": round(max(0.0, expires - now), 1) if expires else None,
+            })
+        out.sort(key=lambda r: r["blocked_at"] or 0, reverse=True)
+        return out
 
     def show(self, ip):
         name = rule_name(ip, "in")
@@ -130,6 +158,7 @@ class FirewallBlocker:
         for name in sorted(names):
             self._netsh(["delete", "rule", f"name={name}"])
         self.blocked.clear()
+        self.block_times.clear()
         return sorted(names)
 
 

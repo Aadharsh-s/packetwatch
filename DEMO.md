@@ -19,7 +19,7 @@ python -m unittest discover tests
 python -m packetwatch --list-ifaces
 ```
 
-You should see two accuracy tables from training, `OK` after 57 tests, and your
+You should see two accuracy tables from training, `OK` after 78 tests, and your
 adapter in the list (usually `'Wi-Fi'`). Every live command needs that name.
 
 Then rehearse the firewall step, so nothing is new on the day:
@@ -58,6 +58,28 @@ firewall step. Point out:
 
 Say: *"Firewall commands are only printed here, so this runs anywhere."*
 
+### 1b. The same run, on the dashboard (no Administrator needed)
+
+```
+python -m packetwatch --simulate --dashboard
+```
+
+The simulation replays, then the process stays up so the results can be
+browsed. Open **http://127.0.0.1:8787**. Show three things, in this order:
+
+- the **decision funnel**: windows judged, flagged by the classifiers, ignored
+  because no rule confirmed them, blocked. Say: *"The gap between flagged and
+  blocked is the verification layer. Machine learning alone never blocks."*
+- **Flagged, not verified**: what was deliberately not blocked, and which rule
+  it was short of, e.g. *"1 of 3 suspicious-port packets"*;
+- **Active blocks**: each one carries the rule, the observed value and the
+  threshold that caused it.
+
+Say: *"It binds to loopback only - a page that can lift a block is a control
+surface, not a report."*
+
+Ctrl+C when you are done.
+
 ### 2. Live traffic, watching only (Administrator window)
 
 ```
@@ -75,8 +97,12 @@ Start it for real in the Administrator window, and note your laptop's IP from
 the "protected addresses" line it prints:
 
 ```
-python -m packetwatch --iface "Wi-Fi"
+python -m packetwatch --dashboard --iface "Wi-Fi"
 ```
+
+Leave **http://127.0.0.1:8787** open on screen while you scan: the source table
+fills in live, the meters climb towards their thresholds, and the block appears
+with its 30-minute expiry counting down. That is the moment to point at.
 
 From the **second device**, scan the laptop. With nmap:
 
@@ -129,7 +155,7 @@ Close with:
 python -m unittest discover tests
 ```
 
-57 tests in about fifteen seconds.
+78 tests in about fifteen seconds.
 
 ### 5. Optional: the vulnerability extension
 

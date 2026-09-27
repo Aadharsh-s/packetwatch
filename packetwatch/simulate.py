@@ -46,7 +46,13 @@ class VirtualClock:
         return self.t
 
 
-def run(risk_map=None):
+def run(risk_map=None, on_ready=None):
+    """Replay every scenario through the pipeline.
+
+    on_ready(pipeline, blocker) is called once both exist and before any traffic
+    is replayed, which is how --dashboard attaches itself in time to see the
+    decisions rather than only their aftermath.
+    """
     from .model import Detector
     from .pipeline import Pipeline
     from .response import Alerter, FirewallBlocker
@@ -57,6 +63,8 @@ def run(risk_map=None):
     risk = risk_map or RiskMap()
     pipeline = Pipeline(Detector(), blocker, Alerter(), own_addresses={HOST},
                         clock=clock, risk_map=risk)
+    if on_ready:
+        on_ready(pipeline, blocker)
 
     print("PacketWatch simulation (DRY RUN - firewall commands are only logged)\n")
     for name, src, build, spacing in SCENARIOS:
