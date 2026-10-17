@@ -17,6 +17,10 @@ def parse_args(argv=None):
     p.add_argument("--dry-run", action="store_true",
                    help="log firewall commands instead of executing them")
     p.add_argument("--whitelist", nargs="*", default=[], help="extra IPs never to block")
+    p.add_argument("--block-gateway", action="store_true",
+                   help="TESTING ONLY: let the default gateway be blocked (for a phone "
+                        "hotspot, where the phone is the gateway). Blocking it cuts this "
+                        "PC's internet until --unblock-all")
     p.add_argument("--risk-map", metavar="JSON",
                    help="vulnerability-module output (python -m packetwatch.vuln "
                         "--json ...): traffic aimed at a known-vulnerable port is "
@@ -110,7 +114,10 @@ def main(argv=None):
     from .riskmap import RiskMap
 
     risk = RiskMap.from_json(args.risk_map) if args.risk_map else RiskMap()
-    own = local_addresses()
+    own = local_addresses(include_gateway=not args.block_gateway)
+    if args.block_gateway:
+        print("WARNING: --block-gateway is on. If the gateway is flagged it WILL be "
+              "blocked and this PC loses internet until --unblock-all.")
     blocker = FirewallBlocker(dry_run=args.dry_run, whitelist=set(args.whitelist) | own)
     pipeline = Pipeline(Detector(), blocker, Alerter(), own_addresses=own,
                         record_path=args.record, risk_map=risk)
