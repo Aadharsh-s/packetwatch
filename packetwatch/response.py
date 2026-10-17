@@ -18,8 +18,12 @@ log = logging.getLogger("packetwatch.response")
 NETSH = "netsh"
 
 
-def local_addresses():
-    """This host's own IPs plus its default gateway - never block these."""
+def local_addresses(include_gateway=True):
+    """This host's own IPs plus its default gateway - never block these.
+
+    include_gateway=False is for testing on a phone hotspot, where the phone is
+    the gateway and would otherwise be the one device that can never be blocked.
+    """
     addrs = set()
     try:
         from scapy.all import conf, get_if_addr, get_working_ifaces
@@ -32,7 +36,7 @@ def local_addresses():
             except Exception:
                 pass
         gw = conf.route.route("0.0.0.0")[2]
-        if gw and gw != "0.0.0.0":
+        if include_gateway and gw and gw != "0.0.0.0":
             addrs.add(gw)
     except Exception as exc:  # scapy/Npcap unavailable (e.g. in tests)
         log.debug("could not enumerate local addresses: %s", exc)
